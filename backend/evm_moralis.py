@@ -81,6 +81,8 @@ async def get_swaps(address: str):
         print(f"Error fetching token price: {e}")
         return None
 
+async def get_evm_pnl(address: str):
+    pass
 
 print(asyncio.run(get_erc20_price('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')))
 # print(asyncio.run(get_evm_portfolio('0x0d8775f648430679a709e98d2b0cb6250d2887ef')))

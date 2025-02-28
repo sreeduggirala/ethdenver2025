@@ -61,3 +61,26 @@ async def get_svm_net_worth(address: str):
     except Exception as e:
         print(f"Error calculating net worth: {e}")
         return None
+    
+
+async def get_svm_swaps(address: str):
+    url = f'https://solana-gateway.moralis.io/account/mainnet/{address}/swaps?order=DESC'
+
+    headers = {
+        'accept': 'application/json',
+        'X-API-Key': api_key,
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                res = await response.json()
+                return float(res['usdPrice'])
+    
+    except Exception as e:
+        print(f"Error fetching token price: {e}")
+        return None
+    
+
+async def get_svm_pnl(address: str):
+    swaps = await get_svm_swaps(address)
