@@ -1,0 +1,52 @@
+{
+  "kols": [
+    {
+      "id": 1,
+      "username": "@CryptoKing",
+      "imageUrl": "/placeholder.svg?height=200&width=200",
+      "backgroundColor": "bg-purple-600",
+      "price": "10c",
+      "points": 150
+    },
+    {
+      "id": 2,
+      "username": "@NFTQueen",
+      "imageUrl": "/placeholder.svg?height=200&width=200",
+      "backgroundColor": "bg-blue-500",
+      "price": "15c",
+      "points": 200
+    },
+    {
+      "id": 3,
+      "username": "@BlockMaster",
+      "imageUrl": "/placeholder.svg?height=200&width=200",
+      "backgroundColor": "bg-emerald-500",
+      "price": "12c",
+      "points": 175
+    },
+    {
+      "id": 4,
+      "username": "@CoinPro",
+      "imageUrl": "/placeholder.svg?height=200&width=200",
+      "backgroundColor": "bg-red-500",
+      "price": "18c",
+      "points": 220
+    },
+    {
+      "id": 5,
+      "username": "@TokenGuru",
+      "imageUrl": "/placeholder.svg?height=200&width=200",
+      "backgroundColor": "bg-indigo-500",
+      "price": "14c",
+      "points": 190
+    },
+    {
+      "id": 6,
+      "username": "@ChainWizard",
+      "imageUrl": "/placeholder.svg?height=200&width=200",
+      "backgroundColor": "bg-amber-500",
+      "price": "16c",
+      "points": 205
+    }
+  ]
+} 
