@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 contract Fantasy {
+	address public authority;
+
 	struct Team {
 		address[5] members;
 	}
@@ -14,6 +16,16 @@ contract Fantasy {
 	event TeamCreated(uint256 id, address creator);
 	event PlayerJoined(address player, uint256 id);
 	event Drafted(address player, string kol, uint256 index);
+	event PriceUpdated(string kol, uint256 price);
+
+	constructor() {
+		authority = msg.sender;
+	}
+
+	modifier onlyAuthority() {
+		require(msg.sender == authority, "Unauthorized user");
+		_;
+	}
 
 	function createTeam() public returns (uint256) {
 		uint256 id = uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp)));
@@ -50,6 +62,15 @@ contract Fantasy {
 		balances[player] -= price;
 		drafts[player][index] = kol;
 		emit Drafted(player, kol, index);
+	}
+
+	function setAuthority(address updatedAuthority) public onlyAuthority {
+		authority = updatedAuthority;
+	}
+
+	function setPrice(string memory kol, uint256 price) public onlyAuthority {
+		prices[kol] = price;
+		emit PriceUpdated(kol, price);
 	}
 
 	function getMembersFromTeam(uint256 id) public view returns (address[5] memory) {
