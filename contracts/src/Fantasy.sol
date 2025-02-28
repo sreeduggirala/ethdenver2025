@@ -80,4 +80,12 @@ contract Fantasy {
 	function getDraft(address player) public view returns (string[5] memory) {
 		return drafts[player];
 	}
+
+	function getPrice(string memory kol) public view returns (uint256) {
+		uint256 price = 10;
+		if(prices[kol] > 0) {
+			price = prices[kol];
+		}
+		return price;
+	}
 }
