@@ -35,7 +35,7 @@ contract FantasyTest is Test {
         dummy.mint(user3, 1000 * 10 ** 18);
 
         // Deploy the Fantasy contract.
-        fantasy = new Fantasy();
+        fantasy = new Fantasy(0x0);
         // Update the token address to point to our dummy token.
         fantasy.setToken(address(dummy));
 
