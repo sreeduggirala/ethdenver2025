@@ -31,8 +31,8 @@ RLUSD: [0x7F9E336321B4bdb67d41AF3613A8C1D135FfA5B1](https://sepolia.basescan.org
 
 ## ZKSync: https://sepolia.era.zksync.dev
 
-[]()
-[]()
+FantasyKO: [0xc6a52bB69481B56F8299777573656bb8F49A2539](https://sepolia.explorer.zksync.io/address/0xc6a52bB69481B56F8299777573656bb8F49A2539)
+RLUSD: [0x955f617186Ce45f70203a752104e66eFc9dBc1Ef](https://sepolia.explorer.zksync.io/address/0x955f617186Ce45f70203a752104e66eFc9dBc1Ef)
 
 ## Ink: https://ink-sepolia.drpc.org
 
