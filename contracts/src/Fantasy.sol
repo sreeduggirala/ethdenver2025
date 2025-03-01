@@ -79,6 +79,21 @@ contract Fantasy {
 		emit Drafted(player, kol, index);
 	}
 
+	function draftAll(address player, string[] memory kols) {
+		require(kols.length == 5, "Number of KOLs must be 5");
+		uint256 price = 10;
+		for(uint256 i = 0; i < 5; i++) {
+			price = 10;
+			if(prices[kols[i]] > 0) {
+				price = prices[kols[i]];
+			}
+			require(balances[player] >= price, "Insufficient funds");
+			balances[player] -= price;
+			drafts[player][i] = kols[i];
+			emit Drafted(player, kols[i], i);
+		}
+	}
+
 	function addFunds(uint256 id) public {
 		Team storage team = teams[id];
 		uint256 index = 5;
@@ -167,6 +182,10 @@ contract Fantasy {
 			prize = team.prizes[index];
 		}
 		return prize;
+	}
+
+	function getBalance(address player) public view returns (uint256) {
+		return balances[address];
 	}
 
 	function getToken() public view returns (address) {
