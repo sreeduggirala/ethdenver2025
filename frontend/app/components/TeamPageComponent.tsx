@@ -256,7 +256,7 @@ export default function TeamPageComponent() {
           
           {hasDraftedKols && (
             <div className="bg-yellow-800 text-white p-4 rounded-md mb-8 text-center">
-              <p className="text-lg">Your team has been finalized. Good luck now degen!.</p>
+              <p className="text-lg">Your team has been finalized. Good luck now, degen!</p>
             </div>
           )}
 

@@ -9,9 +9,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       appId="cm7p7aqcz00deec0zc4ehmngc" // replace with your actual app id
       config={{
         appearance: {
-          theme: 'light',
-          accentColor: '#676FFF',
-          logo: 'https://texarg.com/wp-content/uploads/2022/12/cropped-texarg-2.png', // replace with your logo URL
+          theme: 'dark',
+          accentColor: '#7133ea',
+          logo: '/fantasy_kol_logo.png',
         },
         embeddedWallets: {
           createOnLogin: 'users-without-wallets',
