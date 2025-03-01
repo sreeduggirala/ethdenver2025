@@ -8,6 +8,7 @@ interface IERC20 {
 
 contract Fantasy {
 	address public authority;
+	address public feeCollector;
 	address public token = 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec;
 	uint256 counter = 1;
 	// address public token = 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4;
@@ -17,6 +18,9 @@ contract Fantasy {
 		uint256[5] funds;
 		uint256[5] prizes;
 		uint256[5] points;
+		uint256 pool;
+		uint256 deposit;
+		bool locked;
 	}
 
 	mapping(address => string[5]) public drafts;
@@ -36,6 +40,7 @@ contract Fantasy {
 
 	constructor() {
 		authority = msg.sender;
+		feeCollector = msg.sender;
 	}
 
 	modifier onlyAuthority() {
@@ -43,9 +48,10 @@ contract Fantasy {
 		_;
 	}
 
-	function createTeam() public returns (uint256) {
+	function createTeam(uint256 deposit) public returns (uint256) {
 		require(membership[msg.sender] == 0, "Already in a team");
 		Team storage team = teams[counter];
+		team.deposit = deposit;
 		team.members[0] = msg.sender;
 		for(uint256 i = 0; i < 5; i++) {
 			drafts[msg.sender][i] = "";
@@ -59,6 +65,7 @@ contract Fantasy {
 	function join(uint256 id) public {
 		require(membership[msg.sender] == 0, "Already in a team");
 		Team storage team = teams[id];
+		require(!team.locked, "Team is locked");
 		bool joined = false;
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == address(0)) {
@@ -130,8 +137,11 @@ contract Fantasy {
 			}
 		}
 		require(index < 5, "Could not find player with no balance");
-		require(IERC20(token).transferFrom(msg.sender, address(this), 100 * (10 ** 18)), "Transfer failed");
-		team.funds[index] = 100;
+		require(IERC20(token).transferFrom(msg.sender, address(this), team.deposit * (10 ** 18)), "Funds transfer failed");
+		team.funds[index] = team.deposit;
+		uint256 fee = team.deposit / 5;
+		require(IERC20(token).transfer(feeCollector, fee * (10 ** 18)), "Fee transfer failed");
+		team.pool += team.deposit - fee;
 		balances[msg.sender] = 100;
 	}
 
@@ -147,12 +157,16 @@ contract Fantasy {
 		require(index < 5, "Could not find player with prizes");
 		uint256 prize = team.prizes[index];
 		team.prizes[index] = 0;
-		require(IERC20(token).transfer(msg.sender, prize * (10 ** 18)), "Transfer failed");
+		require(IERC20(token).transfer(msg.sender, prize * (10 ** 18)), "Prize transfer failed");
 		emit PrizeClaimed(id, msg.sender, prize);
 	}
 
 	function setAuthority(address updatedAuthority) public onlyAuthority {
 		authority = updatedAuthority;
+	}
+
+	function setFeeCollector(address updatedFeeCollector) public onlyAuthority {
+		feeCollector = updatedFeeCollector;
 	}
 
 	function setPrice(string memory kol, uint256 price) public onlyAuthority {
@@ -170,6 +184,9 @@ contract Fantasy {
 			}
 		}
 		require(index < 5, "Could not find player");
+		team.locked = true;
+		require(amount >= team.pool, "Insufficient funds");
+		team.pool -= amount;
 		team.prizes[index] += amount;
 		emit PrizeIssued(id, player, amount);
 	}
@@ -184,6 +201,7 @@ contract Fantasy {
 			}
 		}
 		require(index < 5, "Could not find player");
+		team.locked = true;
 		team.points[index] += amount;
 		emit PointsIssued(id, player, amount);
 	}
@@ -191,7 +209,11 @@ contract Fantasy {
 	function addAllPrizesAndPoints(uint256 id, uint256[] prizes, uint256[] points) public onlyAuthority {
 		require(prizes.length == 5, "Number of prizes must be 5");
 		require(points.length == 5, "Number of points must be 5");
+		Team storage team = teams[id];
+		team.locked = true;
 		for(uint256 i = 0; i < 5; i++) {
+			require(prizes[i] >= team.pool, "Insufficient funds");
+			team.pool -= prizes[i];
 			team.prizes[i] += prizes[i];
 			emit PrizeIssued(id, team.members[i], prizes[i]);
 			team.points[i] += points[i];
@@ -209,6 +231,18 @@ contract Fantasy {
 
 	function getPointsFromTeam(uint256 id) public view returns (uint256[5] memory) {
 		return teams[id].points;
+	}
+
+	function getPrizePool(uint256 id) public view returns (uint256 memory) {
+		return teams[id].pool;
+	}
+
+	function getDeposit(uint256 id) public view returns (uint256 memory) {
+		return teams[id].deposit;
+	}
+
+	function getLockedStatus(uint256 id) public view returns (bool memory) {
+		return teams[id].locked;
 	}
 
 	function getDraft(address player) public view returns (string[5] memory) {
