@@ -6,9 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract Fantasy is ERC20 {
     address public authority;
     address public feeCollector;
-    address public token = 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec;
+    address public token;
     uint256 counter = 1;
-    // address public token = 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4;
 
     struct Team {
         address[5] members;
@@ -35,9 +34,12 @@ contract Fantasy is ERC20 {
     event PointsIssued(uint256 id, address player, uint256 amount);
     event PrizeClaimed(uint256 id, address player, uint256 amount);
 
-    constructor() ERC20("", "") {
+    // 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec - mainnet RLUSD
+    // 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4 - sepolia RLUSD
+    constructor(address initialToken) ERC20("", "") {
         authority = msg.sender;
         feeCollector = msg.sender;
+        token = initialToken;
     }
 
     modifier onlyAuthority() {
