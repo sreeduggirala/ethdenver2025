@@ -6,28 +6,68 @@ import NFTCard from "@/app/components/nft-card";
 import { useEffect, useState } from "react";
 import { getBalance } from "../lib/getBalance";
 import { usePrivy } from "@privy-io/react-auth";
-import { routeModule } from "next/dist/build/templates/app-page";
+import { getDraft } from "../lib/getDraft";
+import kolsData from "../../data/kols.json";
 
 export default function TeamPageComponent() {
   const [roster, setRoster] = useState<any[]>([{}, {}, {}, {}, {}]);
-  let [balance, setBalance] = useState(0);
-
-  useEffect(() => {
-    const savedRoster = localStorage.getItem("roster");
-    if (savedRoster) {
-      setRoster(JSON.parse(savedRoster));
-    } else {
-      localStorage.setItem("roster", JSON.stringify([{}, {}, {}, {}, {}]));
-    }
-  }, []);
-
-  const handleEmptySlotClick = (slotIndex: number) => {
-    localStorage.setItem("selectedSlotIndex", slotIndex.toString());
-  };
+  const [balance, setBalance] = useState(0);
+  const [initialBalance, setInitialBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showFundPopup, setShowFundPopup] = useState(false);
+  const [draftedKols, setDraftedKols] = useState<string[]>([]);
+  const [hasDraftedKols, setHasDraftedKols] = useState(false);
 
   const { ready, authenticated, user } = usePrivy();
-  let address: any =
-    user?.wallet?.address || window.localStorage.getItem("address");
+  let address: any = user?.wallet?.address || window.localStorage.getItem("address");
+
+  // Fetch drafted KOLs
+  useEffect(() => {
+    async function fetchDraftedKols() {
+      if (address) {
+        try {
+          const draft = await getDraft(address);
+          setDraftedKols(draft);
+          
+          // Check if there are any non-empty drafted KOLs
+          const hasNonEmptyDraft = draft.some(wallet => wallet !== "");
+          setHasDraftedKols(hasNonEmptyDraft);
+          
+          if (hasNonEmptyDraft) {
+            // Map drafted KOL wallets to full KOL objects
+            const draftedRoster = draft.map(wallet => {
+              if (wallet === "") return {};
+              const kol = kolsData.kols.find(k => k.wallet === wallet);
+              return kol || {};
+            });
+            
+            setRoster(draftedRoster);
+            localStorage.setItem("roster", JSON.stringify(draftedRoster));
+          } else {
+            // If no drafted KOLs, load from localStorage
+            const savedRoster = localStorage.getItem("roster");
+            if (savedRoster) {
+              setRoster(JSON.parse(savedRoster));
+            } else {
+              localStorage.setItem("roster", JSON.stringify([{}, {}, {}, {}, {}]));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching drafted KOLs:", error);
+          
+          // Fallback to localStorage if draft fetch fails
+          const savedRoster = localStorage.getItem("roster");
+          if (savedRoster) {
+            setRoster(JSON.parse(savedRoster));
+          } else {
+            localStorage.setItem("roster", JSON.stringify([{}, {}, {}, {}, {}]));
+          }
+        }
+      }
+    }
+    
+    fetchDraftedKols();
+  }, [address]);
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -42,16 +82,99 @@ export default function TeamPageComponent() {
 
   useEffect(() => {
     async function fetchBalance() {
-      const bal = await getBalance(address);
-      setBalance(bal);
+      if (address) {
+        setIsLoading(true);
+        try {
+          const bal = await getBalance(address);
+          setInitialBalance(bal);
+          
+          // Calculate total cost of current roster
+          const rosterCost = roster.reduce((total, kol) => {
+            return total + (kol.price || 0);
+          }, 0);
+          
+          // Subtract roster cost from initial balance
+          setBalance(bal - rosterCost);
+        } catch (error) {
+          console.error("Error fetching balance:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
     }
+    
     fetchBalance();
-  }, [address]);
+  }, [address, roster]);
+
+  const handleEmptySlotClick = (slotIndex: number) => {
+    localStorage.setItem("selectedSlotIndex", slotIndex.toString());
+  };
+
+  const handleRemoveKol = async (index: number) => {
+    const newRoster = [...roster];
+    const removedKol = newRoster[index];
+    newRoster[index] = {};
+    setRoster(newRoster);
+    localStorage.setItem("roster", JSON.stringify(newRoster));
+    
+    // Refund the removed KOL's price
+    if (removedKol.price) {
+      setBalance(balance + removedKol.price);
+    }
+  };
+
+  const handleFundTeam = () => {
+    // Logic to lock funds and finalize team
+    console.log('Team funded and locked!');
+    localStorage.setItem("teamLocked", "true");
+    setShowFundPopup(false);
+    
+    // You might want to redirect to leaderboard or show a success message
+    window.location.href = "/team";
+  };
 
   return (
     <main className="flex min-h-screen flex-col bg-black text-white p-4 md:p-8">
-      {address ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-2xl">Loading...</div>
+        </div>
+      ) : (
         <>
+          {/* Fund Team Popup */}
+          {showFundPopup && !hasDraftedKols && (
+            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+              <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+                <h2 className="text-2xl font-bold mb-4 text-yellow-400">Fund Your Team</h2>
+                <p className="text-gray-300 mb-6">
+                  Warning: This action will lock your team and funds. You won't be able to:
+                </p>
+                <ul className="list-disc pl-6 mb-6 text-gray-300 space-y-2">
+                  <li>Change your team composition</li>
+                  <li>Remove or swap KOLs</li>
+                  <li>Withdraw your funds until the competition ends</li>
+                </ul>
+                <p className="text-gray-300 mb-6">
+                  Are you sure you want to proceed?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleFundTeam}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-3 rounded transition-colors flex-1"
+                  >
+                    Confirm & Lock
+                  </button>
+                  <button
+                    onClick={() => setShowFundPopup(false)}
+                    className="bg-gray-600 hover:bg-gray-700 px-4 py-3 rounded transition-colors flex-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header with Starting 5 and Leaderboard link */}
           <div className="flex justify-between items-center mb-12 mt-4">
             <div className="border-2 border-white p-3 md:p-4 rounded-md">
@@ -74,6 +197,12 @@ export default function TeamPageComponent() {
             </div>
           </div>
 
+          {hasDraftedKols && (
+            <div className="bg-yellow-800 text-white p-4 rounded-md mb-8 text-center">
+              <p className="text-lg">Your team has been pre-drafted. You cannot modify these selections.</p>
+            </div>
+          )}
+
           {/* Player Selection Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16 mt-24">
             {roster.map((kol, index) =>
@@ -86,51 +215,63 @@ export default function TeamPageComponent() {
                     price={kol.price}
                     points={kol.points}
                   />
-                  <Link
-                    href={`/search?index=${index}`}
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60"
-                  >
-                    <button
-                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
-                      onClick={() => handleEmptySlotClick(index)}
-                    >
-                      Swap
-                    </button>
-                    <button
-                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center mx-2"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        const newRoster = [...roster];
-                        newRoster[index] = {};
-                        setRoster(newRoster);
-                        localStorage.setItem("roster", JSON.stringify(newRoster));
-                        balance = await getBalance(address);
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </Link>
+                  {!hasDraftedKols && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60">
+                      <Link
+                        href={`/search?index=${index}`}
+                        onClick={() => handleEmptySlotClick(index)}
+                      >
+                        <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                          Swap
+                        </button>
+                      </Link>
+                      <button
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center mx-2"
+                        onClick={() => handleRemoveKol(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <Link
-                  key={index}
-                  href={`/search?index=${index}`}
-                  onClick={() => handleEmptySlotClick(index)}
-                >
-                  <NFTCard
-                    imageUrl=""
-                    username={`Slot ${index + 1}`}
-                    isEmpty={true}
-                  />
-                </Link>
+                !hasDraftedKols ? (
+                  <Link
+                    key={index}
+                    href={`/search?index=${index}`}
+                    onClick={() => handleEmptySlotClick(index)}
+                  >
+                    <NFTCard
+                      imageUrl=""
+                      username={`Slot ${index + 1}`}
+                      isEmpty={true}
+                    />
+                  </Link>
+                ) : (
+                  <div key={index}>
+                    <NFTCard
+                      imageUrl=""
+                      username={`Empty Slot`}
+                      isEmpty={true}
+                    />
+                  </div>
+                )
               )
             )}
           </div>
+
+          {/* Fund Team Button - Only show if not drafted */}
+          {!hasDraftedKols && (
+            <div className="flex justify-center mb-16">
+              <button 
+                className="bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-300 text-black font-bold text-xl py-3 px-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105"
+                onClick={() => setShowFundPopup(true)}
+              >
+                Fund Team
+              </button>
+            </div>
+          )}
         </>
-      ) : (
-        <div>
-          <h1>Loading...</h1>
-        </div>
       )}
     </main>
   );

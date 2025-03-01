@@ -3,14 +3,21 @@ import Link from "next/link"
 import { CircleIcon } from "lucide-react"
 
 import React from 'react';
-import Providers from './components/Providers'; 
+import Providers from './components/Providers';
 import LoginButton from './components/LoginButton';
+import Head from 'next/head';
 
 
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white relative overflow-hidden">
+      <Head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      </Head>
+      <div className="flex justify-center mb-4">
+        <img src="/fantasy_kol_logo.png" alt="Fantasy KOL Logo" className="w-80 justify-center" />
+      </div>
       {/* Decorative circles */}
       <div className="absolute top-40 left-40 text-indigo-700 opacity-70">
         <CircleIcon size={60} strokeWidth={1.5} />

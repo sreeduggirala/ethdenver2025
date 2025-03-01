@@ -4,9 +4,44 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import NFTCard from '../components/nft-card'
 import { ArrowLeftIcon } from '@heroicons/react/24/solid'
-import kolsData from '../../data/kols.json'
+import rawKolsData from '../../data/kols.json'
+import { getBalance } from '../lib/getBalance'
+import { usePrivy } from '@privy-io/react-auth'
+import { getDraft } from '../lib/getDraft'
+
 export default function SearchPage() {
   const [roster, setRoster] = useState<any[]>([{}, {}, {}, {}, {}])
+  const [balance, setBalance] = useState<number>(0)
+  const [initialBalance, setInitialBalance] = useState<number>(0)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [draftedKols, setDraftedKols] = useState<string[]>([])
+  const [hasDraftedKols, setHasDraftedKols] = useState(false)
+  const [availableKols, setAvailableKols] = useState<any[]>([])
+  const [allKols, setAllKols] = useState<any[]>([])
+  
+  const { user } = usePrivy()
+  const address = user?.wallet?.address || window.localStorage.getItem("address")
+
+  // Load all KOLs from JSON file
+  useEffect(() => {
+    // Ensure we're getting all KOLs from the JSON file
+    console.log("Raw KOLs data:", rawKolsData);
+    
+    if (rawKolsData && rawKolsData.kols && Array.isArray(rawKolsData.kols)) {
+      setAllKols(rawKolsData.kols);
+      console.log("All KOLs loaded:", rawKolsData.kols.length);
+      
+      // Log the first and last KOL to verify data
+      if (rawKolsData.kols.length > 0) {
+        console.log("First KOL:", rawKolsData.kols[0]);
+        console.log("Last KOL:", rawKolsData.kols[rawKolsData.kols.length - 1]);
+      }
+    } else {
+      console.error("Invalid KOLs data structure:", rawKolsData);
+    }
+  }, []);
+
+  // Load roster from localStorage
   useEffect(() => {
     const savedRoster = localStorage.getItem('roster')
     if (savedRoster) {
@@ -15,50 +50,159 @@ export default function SearchPage() {
       localStorage.setItem("roster", JSON.stringify([{}, {}, {}, {}, {}]));
     }
   }, [])
+
+  // Check for drafted KOLs
+  useEffect(() => {
+    async function fetchDraftedKols() {
+      if (address) {
+        try {
+          const draft = await getDraft(address)
+          setDraftedKols(draft)
+          
+          // Check if there are any non-empty drafted KOLs
+          const hasNonEmptyDraft = draft.some(wallet => wallet !== "")
+          setHasDraftedKols(hasNonEmptyDraft)
+          
+          if (hasNonEmptyDraft) {
+            // If user has drafted KOLs, redirect back to team page
+            window.location.href = '/team'
+          }
+        } catch (error) {
+          console.error("Error fetching drafted KOLs:", error)
+        }
+      }
+    }
+    
+    fetchDraftedKols()
+  }, [address])
+
+  // Fetch balance and calculate available KOLs
+  useEffect(() => {
+    async function fetchBalanceAndKols() {
+      if (address && allKols.length > 0) {
+        setIsLoading(true)
+        try {
+          const bal = await getBalance(address)
+          setInitialBalance(bal)
+          
+          // Calculate total cost of current roster
+          const rosterCost = roster.reduce((total, kol) => {
+            return total + (kol.price || 0)
+          }, 0)
+          
+          // Subtract roster cost from initial balance
+          const availableBalance = bal - rosterCost
+          setBalance(availableBalance)
+          
+          // Get IDs of KOLs in the roster (excluding empty slots)
+          const rosterIds = roster
+            .filter(item => item && item.id)
+            .map(item => item.id)
+          
+          console.log("Roster IDs:", rosterIds);
+          console.log("All KOLs count (from state):", allKols.length);
+          
+          // Filter out KOLs that are already in the roster
+          const filteredKols = allKols.filter(kol => !rosterIds.includes(kol.id));
+          console.log("Filtered KOLs count:", filteredKols.length);
+          
+          setAvailableKols(filteredKols)
+        } catch (error) {
+          console.error("Error fetching balance:", error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    }
+    
+    fetchBalanceAndKols()
+  }, [address, roster, allKols])
+
+  const handleKolSelection = async (kol: any) => {
+    // Check if user has enough balance
+    if (balance < kol.price) {
+      alert("Insufficient balance to purchase this KOL")
+      return
+    }
+
+    const index = (new URLSearchParams(window.location.search)).get("index") || "0"
+    const indexNum = parseInt(index)
+    
+    // Get current roster
+    let currentRoster = JSON.parse(window.localStorage.getItem("roster")) || []
+    
+    // Check if replacing an existing KOL (refund their price)
+    let refundAmount = 0
+    if (currentRoster[indexNum] && currentRoster[indexNum].price) {
+      refundAmount = currentRoster[indexNum].price
+    }
+    
+    // Update roster
+    currentRoster[indexNum] = kol
+    window.localStorage.setItem("roster", JSON.stringify(currentRoster))
+    
+    // Redirect back to team page
+    window.location.href = `/team?index=${index}`
+  }
+
   return (
     <main className="min-h-screen bg-black text-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center">
-            <Link href="/team" className="mr-4 text-gray-400 hover:text-white">
-              <ArrowLeftIcon className="h-6 w-6" />
-            </Link>
-            <h1 className="text-3xl font-bold">Select KOL</h1>
-          </div>
-          <div className="text-green-400 text-xl md:text-2xl font-mono">Bank: 50c</div>
+      {isLoading ? (
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-2xl">Loading...</div>
         </div>
-
-        {/* KOL Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {kolsData.kols.filter(kol => !roster.map(kol => kol.wallet).includes(kol.wallet)).map((kol) => (
-            <div
-              key={kol.id}
-              className="relative cursor-pointer group"
-              onClick={() => {
-                // Handle KOL selection/purchase here
-                // Then redirect back to team page
-                const index = (new URLSearchParams(window.location.search)).get("index") || 0;
-                let roster = JSON.parse(window.localStorage.getItem("roster")) || [];
-                roster[index] = kol;
-                window.localStorage.setItem("roster", JSON.stringify(roster));
-                window.location.href = `/team?index=${index}`
-              }}
-            >
-              <NFTCard
-                imageUrl={kol.imageUrl}
-                username={kol.username}
-                backgroundColor={kol.backgroundColor}
-                price={kol.price}
-                points={kol.points}
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <span className="text-white font-semibold text-lg">Buy Now</span>
-              </div>
+      ) : (
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center">
+              <Link href="/team" className="mr-4 text-gray-400 hover:text-white">
+                <ArrowLeftIcon className="h-6 w-6" />
+              </Link>
+              <h1 className="text-3xl font-bold">Select KOL</h1>
             </div>
-          ))}
+            <div className="text-green-400 text-xl md:text-2xl font-mono">Bank: {balance}c</div>
+          </div>
+
+          {/* Debug Info */}
+          <div className="mb-4 text-gray-400">
+            <p>Total KOLs in JSON: {allKols.length}</p>
+            <p>Available KOLs: {availableKols.length}</p>
+          </div>
+
+          {/* KOL Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {availableKols.length > 0 ? (
+              availableKols.map((kol) => (
+                <div
+                  key={kol.id}
+                  className={`relative cursor-pointer group ${balance < kol.price ? 'opacity-50' : ''}`}
+                  onClick={() => balance >= kol.price && handleKolSelection(kol)}
+                >
+                  <NFTCard
+                    imageUrl={kol.imageUrl}
+                    username={kol.username}
+                    backgroundColor={kol.backgroundColor}
+                    price={kol.price}
+                    points={kol.points}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    {balance >= kol.price ? (
+                      <span className="text-white font-semibold text-lg">Buy</span>
+                    ) : (
+                      <span className="text-red-400 font-semibold text-lg">Insufficient Funds</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-xl text-gray-400">No available KOLs found. Your roster may be full.</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </main>
   )
 }
