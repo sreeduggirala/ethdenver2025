@@ -1,11 +1,20 @@
 "use client"
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import NFTCard from '../components/nft-card'
 import { ArrowLeftIcon } from '@heroicons/react/24/solid'
 import kolsData from '../../data/kols.json'
-
 export default function SearchPage() {
+  const [roster, setRoster] = useState<any[]>([{}, {}, {}, {}, {}])
+  useEffect(() => {
+    const savedRoster = localStorage.getItem('roster')
+    if (savedRoster) {
+      setRoster(JSON.parse(savedRoster))
+    } else {
+      localStorage.setItem("roster", JSON.stringify([{}, {}, {}, {}, {}]));
+    }
+  }, [])
   return (
     <main className="min-h-screen bg-black text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -22,14 +31,18 @@ export default function SearchPage() {
 
         {/* KOL Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {kolsData.kols.map((kol) => (
+          {kolsData.kols.filter(kol => !roster.map(kol => kol.wallet).includes(kol.wallet)).map((kol) => (
             <div
               key={kol.id}
               className="relative cursor-pointer group"
               onClick={() => {
                 // Handle KOL selection/purchase here
                 // Then redirect back to team page
-                window.location.href = '/team'
+                const index = (new URLSearchParams(window.location.search)).get("index") || 0;
+                let roster = JSON.parse(window.localStorage.getItem("roster")) || [];
+                roster[index] = kol;
+                window.localStorage.setItem("roster", JSON.stringify(roster));
+                window.location.href = `/team?index=${index}`
               }}
             >
               <NFTCard
