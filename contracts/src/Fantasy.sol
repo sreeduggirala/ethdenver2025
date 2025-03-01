@@ -1,11 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+interface IERC20 {
+	function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+	function transfer(address to, uint256 value) external returns (bool);
+}
+
 contract Fantasy {
 	address public authority;
+	address public token = 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec;
+	// address public token = 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4;
 
 	struct Team {
 		address[5] members;
+		uint256[5] funds;
+		uint256[5] prizes;
 	}
 
 	mapping(address => string[5]) public drafts;
@@ -17,6 +26,8 @@ contract Fantasy {
 	event PlayerJoined(address player, uint256 id);
 	event Drafted(address player, string kol, uint256 index);
 	event PriceUpdated(string kol, uint256 price);
+	event PrizeIssued(uint256 id, address player, uint256 amount);
+	event PrizeClaimed(uint256 id, address player, uint256 amount);
 
 	constructor() {
 		authority = msg.sender;
@@ -31,6 +42,9 @@ contract Fantasy {
 		uint256 id = uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp)));
 		Team storage team = teams[id];
 		team.members[0] = msg.sender;
+		for(uint256 i = 0; i < 5; i++) {
+			draft[msg.sender][i] = "";
+		}
 		emit TeamCreated(id, msg.sender);
 		return id;
 	}
@@ -39,7 +53,7 @@ contract Fantasy {
 		Team storage team = teams[id];
 		bool joined = false;
 		for(uint256 i = 0; i < 5; i++) {
-			if (team.members[i] == address(0)) {
+			if(team.members[i] == address(0)) {
 				team.members[i] = msg.sender;
 				for(uint256 i = 0; i < 5; i++) {
 					draft[msg.sender][i] = "";
@@ -64,6 +78,37 @@ contract Fantasy {
 		emit Drafted(player, kol, index);
 	}
 
+	function addFunds(uint256 id) public {
+		Team storage team = teams[id];
+		uint256 index = 5;
+		for(uint256 i = 0; i < 5; i++) {
+			if(team.members[i] == msg.sender && team.funds[i] == 0) {
+				index = i;
+				break;
+			}
+		}
+		require(index < 5, "Could not find player with no balance");
+		require(IERC20(token).transferFrom(msg.sender, address(this), 100 * (10 ** 18)), "Transfer failed");
+		team.funds[index].funds = 100;
+		balances[msg.sender] = 100;
+	}
+
+	function claimPrize(uint256 id) public {
+		Team storage team = teams[id];
+		uint256 index = 5;
+		for(uint256 i = 0; i < 5; i++) {
+			if(team.members[i] == msg.sender && team.prizes[i] > 0) {
+				index = i;
+				break;
+			}
+		}
+		require(index < 5, "Could not find player with prizes");
+		uint256 prize = team.prizes[index];
+		team.prizes[index] = 0;
+		require(IERC20(token).transfer(msg.sender, prize * (10 ** 18)), "Transfer failed");
+		emit PrizeClaimed(id, msg.sender, prize);
+	}
+
 	function setAuthority(address updatedAuthority) public onlyAuthority {
 		authority = updatedAuthority;
 	}
@@ -71,6 +116,20 @@ contract Fantasy {
 	function setPrice(string memory kol, uint256 price) public onlyAuthority {
 		prices[kol] = price;
 		emit PriceUpdated(kol, price);
+	}
+
+	function setPrize(uint256 id, address player, uint256 amount) public onlyAuthority {
+		Team storage team = teams[id];
+		uint256 index = 5;
+		for(uint256 i = 0; i < 5; i++) {
+			if(team.members[i] == player) {
+				index = i;
+				break;
+			}
+		}
+		require(index < 5, "Could not find player");
+		team.prizes[index] = amount;
+		emit PrizeIssued(id, player, amount);
 	}
 
 	function getMembersFromTeam(uint256 id) public view returns (address[5] memory) {
@@ -87,5 +146,21 @@ contract Fantasy {
 			price = prices[kol];
 		}
 		return price;
+	}
+
+	function getPrize(uint256 id, address player) public view returns (uint256) {
+		Team storage team = teams[id];
+		uint256 index = 5;
+		for(uint256 i = 0; i < 5; i++) {
+			if(team.members[i] == msg.sender && team.prizes[i] > 0) {
+				index = i;
+				break;
+			}
+		}
+		uint256 prize = 0;
+		if(index < 5) {
+			prize = team.prizes[index];
+		}
+		return prize;
 	}
 }
