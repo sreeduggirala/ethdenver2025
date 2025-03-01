@@ -1,4 +1,7 @@
 # Active
+
+
+# Backlog
 1. $6000 - Best Project on Zircuit (Zircuit)
 2. $10000 - Hedera EVM Builder (Hedera)
 3. $5000 - Build a Farcaster Mini App on Base (Base)
@@ -9,4 +12,5 @@
 8. $5000 - Build a Mass Consumer dApp Fully On-chain (Somnia)
 9. $5000 - RLUSD: Mission Stablecoin Adoption (Ripple)
 
-# Backlog
+
+# TBD
