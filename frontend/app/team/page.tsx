@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { TrophyIcon } from "@heroicons/react/24/solid"
+import { TrophyIcon, ArrowsUpDownIcon } from "@heroicons/react/24/solid"
 import NFTCard from "@/app/components/nft-card"
 import kolsData from '../../data/kols.json'
 
@@ -32,14 +32,21 @@ export default function TeamPage() {
       {/* Player Selection Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16">
         {selectedKols.map((kol) => (
-          <NFTCard 
-            key={kol.id}
-            imageUrl={kol.imageUrl}
-            username={kol.username}
-            backgroundColor={kol.backgroundColor}
-            price={kol.price}
-            points={kol.points}
-          />
+          <div key={kol.id} className="relative group">
+            <NFTCard 
+              imageUrl={kol.imageUrl}
+              username={kol.username}
+              backgroundColor={kol.backgroundColor}
+              price={kol.price}
+              points={kol.points}
+            />
+            <Link href="/search" className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60">
+              <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
+                Swap
+              </button>
+            </Link>
+          </div>
         ))}
         <Link href="/search">
           <NFTCard imageUrl="" username="@KOL4" isEmpty={true} />

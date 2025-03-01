@@ -46,17 +46,22 @@ export default function NFTCard({
           fill
           className="object-cover"
         />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/50 to-transparent h-28">
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-16"
+          style={{ backgroundImage: 'linear-gradient(to top, white 80%, transparent 100%)' }}
+        >
           <div className="absolute bottom-0 p-3 w-full">
-            <div className="font-bold text-xl mb-1 text-black">{username}</div>
-            <div className="flex justify-between text-base font-semibold">
-              <span className="text-green-600">{price}</span>
-              <span className="text-yellow-600">{points} pts</span>
+          <div className="flex justify-between text-base font-semibold">
+              <span className="font-bold text-xl mb-0 text-black">{username}</span>
+              <div className="text-green-600 font-bold text-xl">{price}c</div>
+              <span className="text-yellow-600 font-bold text-xl">{points} pts</span>
             </div>
           </div>
         </div>
       </div>
     </div>
   )
+  
+  
 }
 
