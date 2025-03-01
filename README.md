@@ -3,6 +3,15 @@
 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec - Ethereum Mainnet RLUSD
 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4 - Ethereum Sepolia RLUSD
 
+# Zircuit Submission
+Fantasy KOL is a fantasy sports game (like ESPN Fantasy Football) for onchain whale/KOL wallets. 
+We used Zircuit for smart contract deployment, which facilitated team creation, drafting, and ERC-20 payouts.
+Our team comprises undergraduate Computer Science and Electrical and Computer Engineering majors at the University of Texas at Austin
+Zircuit was difficult to work with, as I couldn't transfer tokens between accounts. Furthermore, the faucet was difficult to utilize, as tokens often didn't send to my wallet.
+
+# Video
+
+
 # Contracts
 
 ## Ethereum Sepolia: https://rpc-sepolia.rockx.com
