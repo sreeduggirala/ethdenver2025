@@ -20,6 +20,7 @@ contract Fantasy {
 		uint256 pool;
 		uint256 deposit;
 		bool locked;
+		bool exists;
 	}
 
 	mapping(address => string[5]) public drafts;
@@ -50,6 +51,7 @@ contract Fantasy {
 	function createTeam(uint256 deposit) public returns (uint256) {
 		require(membership[msg.sender] == 0, "Already in a team");
 		Team storage team = teams[counter];
+		team.exists = true;
 		team.deposit = deposit;
 		team.members[0] = msg.sender;
 		for(uint256 i = 0; i < 5; i++) {
@@ -64,6 +66,7 @@ contract Fantasy {
 	function join(uint256 id) public {
 		require(membership[msg.sender] == 0, "Already in a team");
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		require(!team.locked, "Team is locked");
 		bool joined = false;
 		for(uint256 i = 0; i < 5; i++) {
@@ -88,6 +91,7 @@ contract Fantasy {
 
 	function leave(uint256 id) public {
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == msg.sender) {
@@ -132,6 +136,7 @@ contract Fantasy {
 
 	function claimPrize(uint256 id) public {
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == msg.sender && team.prizes[i] > 0) {
@@ -161,6 +166,7 @@ contract Fantasy {
 
 	function addPrize(uint256 id, address player, uint256 amount) public onlyAuthority {
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == player) {
@@ -178,6 +184,7 @@ contract Fantasy {
 
 	function addPoints(uint256 id, address player, uint256 amount) public onlyAuthority {
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == player) {
@@ -195,6 +202,7 @@ contract Fantasy {
 		require(prizes.length == 5, "Number of prizes must be 5");
 		require(points.length == 5, "Number of points must be 5");
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		team.locked = true;
 		for(uint256 i = 0; i < 5; i++) {
 			require(prizes[i] >= team.pool, "Insufficient funds");
@@ -226,8 +234,12 @@ contract Fantasy {
 		return teams[id].deposit;
 	}
 
-	function getLockedStatus(uint256 id) public view returns (bool memory) {
+	function checkLocked(uint256 id) public view returns (bool memory) {
 		return teams[id].locked;
+	}
+
+	function checkExists(uint256 id) public view returns (bool memory) {
+		return teams[id].exists;
 	}
 
 	function getDraft(address player) public view returns (string[5] memory) {
@@ -244,6 +256,7 @@ contract Fantasy {
 
 	function getPrize(uint256 id, address player) public view returns (uint256) {
 		Team storage team = teams[id];
+		require(team.exists, "Team does not exist");
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == player && team.prizes[i] > 0) {
