@@ -6,7 +6,7 @@ import os
 load_dotenv()
 api_key = os.getenv('MORALIS_API_KEY')
 
-async def get_portfolio(address: str):
+async def get_svm_portfolio(address: str):
     url = f'https://solana-gateway.moralis.io/account/mainnet/{address}/portfolio'
 
     headers = {
@@ -23,8 +23,8 @@ async def get_portfolio(address: str):
         print(f"Error fetching wallet portfolio: {e}")
         return None
     
-async def get_token_price(address: str):
-    url = f'https://solana-gateway.moralis.io/token/mainnet/{address}/price'
+async def get_spl_price(mint_address: str):
+    url = f'https://solana-gateway.moralis.io/token/mainnet/{mint_address}/price'
 
     headers = {
         'accept': 'application/json',
@@ -42,8 +42,8 @@ async def get_token_price(address: str):
         return None
     
 
-async def get_net_worth(address: str):
-    portfolio = await get_portfolio(address)
+async def get_svm_net_worth(address: str):
+    portfolio = await get_svm_portfolio(address)
     
     try:
         if not portfolio:
@@ -51,7 +51,7 @@ async def get_net_worth(address: str):
         
         net_worth = 0
         for token in portfolio['tokens']:
-            token_price = await get_token_price(token['mint'])
+            token_price = await get_spl_price(token['mint'])
             
             if token_price:
                 net_worth += float(token['amount']) * float(token_price)
@@ -61,3 +61,26 @@ async def get_net_worth(address: str):
     except Exception as e:
         print(f"Error calculating net worth: {e}")
         return None
+    
+
+async def get_svm_swaps(address: str):
+    url = f'https://solana-gateway.moralis.io/account/mainnet/{address}/swaps?order=DESC'
+
+    headers = {
+        'accept': 'application/json',
+        'X-API-Key': api_key,
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                res = await response.json()
+                return float(res['usdPrice'])
+    
+    except Exception as e:
+        print(f"Error fetching token price: {e}")
+        return None
+    
+
+async def get_svm_pnl(address: str):
+    swaps = await get_svm_swaps(address)
