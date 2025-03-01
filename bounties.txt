@@ -12,5 +12,3 @@
 5. $3000 - Best Consumer App Deployed on ZKSync (ZKSync)
 7. $2500 - Walrus Tusked Champion (Walrus)
 8. $5000 - Build a Mass Consumer dApp Fully On-chain (Somnia)
-
-# TBD
