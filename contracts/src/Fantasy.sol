@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IERC20 {
-	function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-	function transfer(address to, uint256 value) external returns (bool);
-}
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Fantasy {
+contract Fantasy is ERC20 {
 	address public authority;
 	address public feeCollector;
 	address public token = 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec;
@@ -38,7 +35,7 @@ contract Fantasy {
 	event PointsIssued(uint256 id, address player, uint256 amount);
 	event PrizeClaimed(uint256 id, address player, uint256 amount);
 
-	constructor() {
+	constructor() ERC20("", "") {
 		authority = msg.sender;
 		feeCollector = msg.sender;
 	}
@@ -77,9 +74,9 @@ contract Fantasy {
 				}
 				joined = true;
 				membership[msg.sender] = id;
-				require(IERC20(token).transferFrom(msg.sender, address(this), team.deposit * (10 ** 18)), "Funds transfer failed");
+				require(ERC20(token).transferFrom(msg.sender, address(this), team.deposit * (10 ** 18)), "Funds transfer failed");
 				uint256 fee = team.deposit / 5;
-				require(IERC20(token).transfer(feeCollector, fee * (10 ** 18)), "Fee transfer failed");
+				require(ERC20(token).transfer(feeCollector, fee * (10 ** 18)), "Fee transfer failed");
 				team.pool += team.deposit - fee;
 				balances[msg.sender] = 100;
 				emit PlayerJoined(msg.sender, id);
@@ -147,7 +144,7 @@ contract Fantasy {
 		require(index < 5, "Could not find player with prizes");
 		uint256 prize = team.prizes[index];
 		team.prizes[index] = 0;
-		require(IERC20(token).transfer(msg.sender, prize * (10 ** 18)), "Prize transfer failed");
+		require(ERC20(token).transfer(msg.sender, prize * (10 ** 18)), "Prize transfer failed");
 		emit PrizeClaimed(id, msg.sender, prize);
 	}
 
