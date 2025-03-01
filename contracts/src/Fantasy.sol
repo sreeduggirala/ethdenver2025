@@ -9,6 +9,7 @@ interface IERC20 {
 contract Fantasy {
 	address public authority;
 	address public token = 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec;
+	uint256 counter = 0;
 	// address public token = 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4;
 
 	struct Team {
@@ -39,14 +40,14 @@ contract Fantasy {
 	}
 
 	function createTeam() public returns (uint256) {
-		uint256 id = uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp)));
-		Team storage team = teams[id];
+		Team storage team = teams[counter];
 		team.members[0] = msg.sender;
 		for(uint256 i = 0; i < 5; i++) {
-			draft[msg.sender][i] = "";
+			drafts[msg.sender][i] = "";
 		}
-		emit TeamCreated(id, msg.sender);
-		return id;
+		emit TeamCreated(counter, msg.sender);
+		counter++;
+		return counter - 1;
 	}
 
 	function join(uint256 id) public {
@@ -55,8 +56,8 @@ contract Fantasy {
 		for(uint256 i = 0; i < 5; i++) {
 			if(team.members[i] == address(0)) {
 				team.members[i] = msg.sender;
-				for(uint256 i = 0; i < 5; i++) {
-					draft[msg.sender][i] = "";
+				for(uint256 j = 0; j < 5; j++) {
+					drafts[msg.sender][j] = "";
 				}
 				joined = true;
 				emit PlayerJoined(msg.sender, id);
@@ -89,7 +90,7 @@ contract Fantasy {
 		}
 		require(index < 5, "Could not find player with no balance");
 		require(IERC20(token).transferFrom(msg.sender, address(this), 100 * (10 ** 18)), "Transfer failed");
-		team.funds[index].funds = 100;
+		team.funds[index] = 100;
 		balances[msg.sender] = 100;
 	}
 
@@ -132,6 +133,10 @@ contract Fantasy {
 		emit PrizeIssued(id, player, amount);
 	}
 
+	function setToken(address updatedAddress) public onlyAuthority {
+		token = updatedAddress;
+	}
+
 	function getMembersFromTeam(uint256 id) public view returns (address[5] memory) {
 		return teams[id].members;
 	}
@@ -152,7 +157,7 @@ contract Fantasy {
 		Team storage team = teams[id];
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
-			if(team.members[i] == msg.sender && team.prizes[i] > 0) {
+			if(team.members[i] == player && team.prizes[i] > 0) {
 				index = i;
 				break;
 			}
@@ -162,5 +167,9 @@ contract Fantasy {
 			prize = team.prizes[index];
 		}
 		return prize;
+	}
+
+	function getToken() public view returns (address) {
+		return token;
 	}
 }
