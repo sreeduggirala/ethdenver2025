@@ -36,7 +36,7 @@ export default function LoginButton({ onSuccess }: LoginButtonProps) {
         textShadow: "0 0 5px rgba(255, 255, 255, 0.5)",
       }}
     >
-      {authenticated ? 'PLAY' : 'LOGIN'}
+      {'PLAY'}
     </button>
   );
 }
