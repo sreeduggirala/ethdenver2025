@@ -192,7 +192,7 @@ contract Fantasy is ERC20, Ownable {
         }
         require(index < 5, "Could not find player");
         team.locked = true;
-        require(amount >= team.pool, "Insufficient funds");
+        require(team.pool >= amount, "Insufficient funds");
         team.pool -= amount;
         team.prizes[index] += amount;
         emit PrizeIssued(id, player, amount);
@@ -229,7 +229,7 @@ contract Fantasy is ERC20, Ownable {
         require(team.exists, "Team does not exist");
         team.locked = true;
         for (uint256 i = 0; i < 5; i++) {
-            require(prizes[i] >= team.pool, "Insufficient funds");
+            require(team.pool >= prizes[i], "Insufficient funds");
             team.pool -= prizes[i];
             team.prizes[i] += prizes[i];
             emit PrizeIssued(id, team.members[i], prizes[i]);

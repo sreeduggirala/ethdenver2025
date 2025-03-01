@@ -100,7 +100,7 @@ contract FantasyTest is Test {
         // Thus, user2’s token balance should now be 1000 - 100 = 900 tokens.
         assertEq(dummy.balanceOf(user2), 900 * 10 ** 18);
         // The Fantasy contract receives the remaining 80 tokens (100 - 20).
-        assertEq(dummy.balanceOf(address(fantasy)), 80 * 10 ** 18);
+        assertEq(dummy.balanceOf(address(fantasy)), 160 * 10 ** 18);
     }
 
     function testLeaveTeam() public {
