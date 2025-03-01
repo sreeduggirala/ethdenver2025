@@ -1,4 +1,5 @@
 # Active
+1. $6000 - Best Project on Zircuit (Zircuit)
 2. $10000 - Hedera EVM Builder (Hedera)
 4. $5000 - DeFi Innovation on Unichain (Uniswap)
 6. $3000 - Build the Best App that Combines the Worlds of SocialFi, GambleFi and or DeFi (Ink)
@@ -7,7 +8,6 @@
 
 
 # Backlog
-1. $6000 - Best Project on Zircuit (Zircuit)
 3. $5000 - Build a Farcaster Mini App on Base (Base)
 5. $3000 - Best Consumer App Deployed on ZKSync (ZKSync)
 7. $2500 - Walrus Tusked Champion (Walrus)

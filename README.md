@@ -11,8 +11,8 @@ FantasyKOL: [0x813722E1244b608a8d60fD5090C68bF6Ac12b602](https://sepolia.ethersc
 
 ## Zircuit: https://zircuit1-testnet.p2pify.com
 
-[]()
-[]()
+FantasyKOL: [0xE8046f922F3Ad4bd633447014DDf89d57070ED87](https://explorer.testnet.zircuit.com/address/0xE8046f922F3Ad4bd633447014DDf89d57070ED87)
+RLUSD: [0x7a722C4C585F17B237DD2C57dD46677c7D348420](https://explorer.testnet.zircuit.com/address/0x7a722C4C585F17B237DD2C57dD46677c7D348420)
 
 ## Hedera: https://testnet.hashio.io/api
 
