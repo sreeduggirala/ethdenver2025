@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { TrophyIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-react"
+import { encodeFunctionData } from 'viem';
 import { useEffect, useState } from 'react'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { routeModule } from "next/dist/build/templates/app-page"
@@ -10,6 +11,7 @@ import { getPointsFromTeam } from "../lib/getPointsFromTeam";
 import { getTeamId } from "../lib/getTeamId";
 import { getPrize } from "../lib/getPrize";
 import { getTokenAddress } from "../lib/getTokenAddress";
+import { getContractAddress } from "../lib/getContractAddress";
 import CreateGroupPopup from "./CreateGroupPopup";
 import JoinGroupPopup from "./JoinGroupPopup";
 
@@ -136,15 +138,37 @@ export default function LeaderPageComponent() {
         localStorage.setItem('selectedSlotIndex', slotIndex.toString())
     }
 
-    const handleCreateGroup = (depositAmount: number) => {
+    const handleCreateGroup = async (depositAmount: number) => {
         // Implement group creation logic here using depositAmount
         console.log(`Creating new group with ${depositAmount} RLUSD deposit requirement`);
         let erc20Abi = [
-            "function approve(address spender, uint256 amount) public returns (bool)",
+            {
+                "inputs": [
+                    { "name": "spender", "type": "address" },
+                    { "name": "amount", "type": "uint256" }
+                ],
+                "name": "approve",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
         ];
-        let tokenAddress = getTokenAddress(wallet?.chainId);
-        // let tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
-        console.log(wallet);
+        let data = encodeFunctionData({
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [address, BigInt(depositAmount) * (10n ** 18n)]
+        });
+        const transactionRequest = {
+            from: address,
+            to: getContractAddress(wallet?.chainId),
+            data: data,
+            value: 0
+        }
+        let provider = await wallet.getEthereumProvider();
+        const hash = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [transactionRequest],
+        });
         setShowCreateGroupPopup(false);
     };
 
