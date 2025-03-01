@@ -9,6 +9,7 @@ import { getMembersFromTeam } from "../lib/getMembersFromTeam";
 import { getPointsFromTeam } from "../lib/getPointsFromTeam";
 import { getTeamId } from "../lib/getTeamId";
 import { getPrize } from "../lib/getPrize";
+import { getTokenAddress } from "../lib/getTokenAddress";
 import CreateGroupPopup from "./CreateGroupPopup";
 import JoinGroupPopup from "./JoinGroupPopup";
 
@@ -138,6 +139,12 @@ export default function LeaderPageComponent() {
     const handleCreateGroup = (depositAmount: number) => {
         // Implement group creation logic here using depositAmount
         console.log(`Creating new group with ${depositAmount} RLUSD deposit requirement`);
+        let erc20Abi = [
+            "function approve(address spender, uint256 amount) public returns (bool)",
+        ];
+        let tokenAddress = getTokenAddress(wallet?.chainId);
+        // let tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+        console.log(wallet);
         setShowCreateGroupPopup(false);
     };
 
