@@ -21,23 +21,21 @@ contract FantasyTest is Test {
     Fantasy fantasy;
     DummyERC20 dummy;
 
-    // Use different addresses for testing different actors.
+    // Define test addresses for different users.
     address user1 = address(0x1);
     address user2 = address(0x2);
     address user3 = address(0x3);
 
     function setUp() public {
-        // Deploy the dummy token.
+        // Deploy the dummy token and mint tokens for test users.
         dummy = new DummyERC20();
-        // Mint tokens for our test users.
         dummy.mint(user1, 1000 * 10 ** 18);
         dummy.mint(user2, 1000 * 10 ** 18);
         dummy.mint(user3, 1000 * 10 ** 18);
 
         // Deploy the Fantasy contract.
-        fantasy = new Fantasy(address(0));
-        // Update the token address to point to our dummy token.
-        fantasy.setToken(address(dummy));
+        // We pass address(this) as the owner and the dummy token address as initialToken.
+        fantasy = new Fantasy(address(this), address(dummy));
 
         // Have each test user approve the Fantasy contract to spend their tokens.
         vm.startPrank(user1);
@@ -58,9 +56,8 @@ contract FantasyTest is Test {
         vm.prank(user1);
         uint256 teamId = fantasy.createTeam(100);
 
-        // Check that user1’s membership is set.
-        uint256 membership = fantasy.getTeam(user1);
-        assertEq(membership, teamId);
+        // Verify that user1’s membership is updated.
+        assertEq(fantasy.getTeam(user1), teamId);
 
         // Verify that the team’s deposit was set correctly.
         uint256 deposit = fantasy.getDeposit(teamId);
@@ -82,7 +79,7 @@ contract FantasyTest is Test {
         // Verify that user2’s membership is updated.
         assertEq(fantasy.getTeam(user2), teamId);
 
-        // Verify that user2 appears in the team’s members.
+        // Verify that user2 appears in the team’s members array.
         address[5] memory members = fantasy.getMembersFromTeam(teamId);
         bool found = false;
         for (uint256 i = 0; i < 5; i++) {
@@ -96,10 +93,18 @@ contract FantasyTest is Test {
         // Check that user2’s internal balance was set to 100 by the join function.
         uint256 bal = fantasy.getBalance(user2);
         assertEq(bal, 100);
+
+        // Check token transfers:
+        // user2 transfers 100 tokens (scaled by 10**18) for the deposit.
+        // A fee equal to deposit/5 (i.e. 20 tokens) is transferred to the owner.
+        // Thus, user2’s token balance should now be 1000 - 100 = 900 tokens.
+        assertEq(dummy.balanceOf(user2), 900 * 10 ** 18);
+        // The Fantasy contract receives the remaining 80 tokens (100 - 20).
+        assertEq(dummy.balanceOf(address(fantasy)), 80 * 10 ** 18);
     }
 
     function testLeaveTeam() public {
-        // user1 creates a team and user2 joins then leaves.
+        // user1 creates a team, user2 joins then leaves.
         vm.prank(user1);
         uint256 teamId = fantasy.createTeam(100);
 
@@ -109,10 +114,10 @@ contract FantasyTest is Test {
 
         vm.prank(user2);
         fantasy.leave(teamId);
-        // After leaving, user2’s membership should be 0.
+        // After leaving, user2’s membership should be reset.
         assertEq(fantasy.getTeam(user2), 0);
 
-        // Verify that user2 is no longer in the team members array.
+        // Verify that user2 is no longer in the team’s members array.
         address[5] memory members = fantasy.getMembersFromTeam(teamId);
         bool found = false;
         for (uint256 i = 0; i < 5; i++) {
@@ -145,7 +150,7 @@ contract FantasyTest is Test {
         string[5] memory draftsAfter = fantasy.getDraft(user2);
         assertEq(draftsAfter[0], "KOL1");
 
-        // The default price is 10, so user2’s balance should have decreased from 100 to 90.
+        // The default draft price is 10; therefore, user2’s internal balance should decrease from 100 to 90.
         uint256 balanceAfter = fantasy.getBalance(user2);
         assertEq(balanceAfter, 90);
     }
@@ -174,7 +179,7 @@ contract FantasyTest is Test {
         for (uint256 i = 0; i < 5; i++) {
             assertEq(draftsAfter[i], kols[i]);
         }
-        // Since each draft costs 10, the total deduction is 50; user2’s balance should now be 50.
+        // Since each draft costs 10, the total deduction is 50; user2’s internal balance should now be 50.
         uint256 balanceAfter = fantasy.getBalance(user2);
         assertEq(balanceAfter, 50);
     }
@@ -186,29 +191,29 @@ contract FantasyTest is Test {
         vm.prank(user2);
         fantasy.join(teamId);
 
-        // At join, deposit=100 results in a fee of 20 and a pool of 80.
-        // From the authority (the test contract), award a prize to user2.
+        // For testing purposes, add a prize for user2 via the owner.
+        // At join with deposit=100, the pool becomes 80 tokens.
         vm.prank(address(this));
         fantasy.addPrize(teamId, user2, 80);
 
-        // Capture user2’s token balance before claiming.
+        // Capture user2’s token balance before claiming the prize.
         uint256 balanceBefore = dummy.balanceOf(user2);
 
         // user2 claims their prize.
         vm.prank(user2);
         fantasy.claimPrize(teamId);
 
-        // user2 should receive 80 tokens (scaled by 10^18).
+        // user2 should receive 80 tokens (scaled by 10**18).
         uint256 balanceAfter = dummy.balanceOf(user2);
         assertEq(balanceAfter, balanceBefore + (80 * 10 ** 18));
 
-        // Verify that user2’s prize in the team has been zeroed out.
+        // Verify that user2’s prize has been reset to 0.
         uint256 prize = fantasy.getPrize(teamId, user2);
         assertEq(prize, 0);
     }
 
     function testSetPrice() public {
-        // Only the authority (deployer/test contract) can set a price.
+        // Only the owner can set the price.
         vm.prank(address(this));
         fantasy.setPrice("KOL1", 50);
 
@@ -223,11 +228,11 @@ contract FantasyTest is Test {
         vm.prank(user2);
         fantasy.join(teamId);
 
-        // Add points for user2 from the authority.
+        // Add points for user2 via the owner.
         vm.prank(address(this));
         fantasy.addPoints(teamId, user2, 25);
 
-        // Retrieve the points for the team and check that user2 received 25 points.
+        // Retrieve the points for the team and verify that user2 received 25 points.
         uint256[5] memory points = fantasy.getPointsFromTeam(teamId);
         bool found = false;
         for (uint256 i = 0; i < 5; i++) {

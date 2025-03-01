@@ -2,10 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Fantasy is ERC20 {
-    address public authority;
-    address public feeCollector;
+contract Fantasy is ERC20, Ownable {
     address public token;
     uint256 counter = 1;
 
@@ -36,15 +35,11 @@ contract Fantasy is ERC20 {
 
     // 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec - mainnet RLUSD
     // 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4 - sepolia RLUSD
-    constructor(address initialToken) ERC20("", "") {
-        authority = msg.sender;
-        feeCollector = msg.sender;
+    constructor(
+        address owner,
+        address initialToken
+    ) ERC20("", "") Ownable(owner) {
         token = initialToken;
-    }
-
-    modifier onlyAuthority() {
-        require(msg.sender == authority, "Unauthorized user");
-        _;
     }
 
     function createTeam(uint256 deposit) public returns (uint256) {
@@ -86,7 +81,7 @@ contract Fantasy is ERC20 {
                 );
                 uint256 fee = team.deposit / 5;
                 require(
-                    ERC20(token).transfer(feeCollector, fee * (10 ** 18)),
+                    ERC20(token).transfer(owner(), fee * (10 ** 18)),
                     "Fee transfer failed"
                 );
                 team.pool += team.deposit - fee;
@@ -163,15 +158,7 @@ contract Fantasy is ERC20 {
         emit PrizeClaimed(id, msg.sender, prize);
     }
 
-    function setAuthority(address updatedAuthority) public onlyAuthority {
-        authority = updatedAuthority;
-    }
-
-    function setFeeCollector(address updatedFeeCollector) public onlyAuthority {
-        feeCollector = updatedFeeCollector;
-    }
-
-    function setPrice(string memory kol, uint256 price) public onlyAuthority {
+    function setPrice(string memory kol, uint256 price) public onlyOwner {
         prices[kol] = price;
         emit PriceUpdated(kol, price);
     }
@@ -180,7 +167,7 @@ contract Fantasy is ERC20 {
         uint256 id,
         address player,
         uint256 amount
-    ) public onlyAuthority {
+    ) public onlyOwner {
         Team storage team = teams[id];
         require(team.exists, "Team does not exist");
         uint256 index = 5;
@@ -202,7 +189,7 @@ contract Fantasy is ERC20 {
         uint256 id,
         address player,
         uint256 amount
-    ) public onlyAuthority {
+    ) public onlyOwner {
         Team storage team = teams[id];
         require(team.exists, "Team does not exist");
         uint256 index = 5;
@@ -222,7 +209,7 @@ contract Fantasy is ERC20 {
         uint256 id,
         uint256[] memory prizes,
         uint256[] memory points
-    ) public onlyAuthority {
+    ) public onlyOwner {
         require(prizes.length == 5, "Number of prizes must be 5");
         require(points.length == 5, "Number of points must be 5");
         Team storage team = teams[id];
@@ -238,7 +225,7 @@ contract Fantasy is ERC20 {
         }
     }
 
-    function setToken(address updatedAddress) public onlyAuthority {
+    function setToken(address updatedAddress) public onlyOwner {
         token = updatedAddress;
     }
 
