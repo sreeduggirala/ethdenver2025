@@ -3,12 +3,11 @@
 2. $10000 - Hedera EVM Builder (Hedera)
 4. $5000 - DeFi Innovation on Unichain (Uniswap)
 6. $3000 - Build the Best App that Combines the Worlds of SocialFi, GambleFi and or DeFi (Ink)
-9. $5000 - RLUSD: Mission Stablecoin Adoption (Ripple)
-10. $5000 - Most Killer App (Flow)
+8. $5000 - RLUSD: Mission Stablecoin Adoption (Ripple)
+9. $5000 - Most Killer App (Flow)
+5. $3000 - Best Consumer App Deployed on ZKSync (ZKSync)
+7. $5000 - Build a Mass Consumer dApp Fully On-chain (Somnia)
 
 
 # Backlog
 3. $5000 - Build a Farcaster Mini App on Base (Base)
-5. $3000 - Best Consumer App Deployed on ZKSync (ZKSync)
-7. $2500 - Walrus Tusked Champion (Walrus)
-8. $5000 - Build a Mass Consumer dApp Fully On-chain (Somnia)
