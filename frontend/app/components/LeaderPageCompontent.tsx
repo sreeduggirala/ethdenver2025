@@ -25,6 +25,7 @@ export default function LeaderPageComponent() {
     const [isCopied, setIsCopied] = useState(false);
     const [showCreateGroupPopup, setShowCreateGroupPopup] = useState(false);
     const [showJoinGroupPopup, setShowJoinGroupPopup] = useState(false);
+    const [showPrizePopup, setShowPrizePopup] = useState(false);
 
     const copyTeamId = async () => {
         try {
@@ -114,6 +115,10 @@ export default function LeaderPageComponent() {
         setShowJoinGroupPopup(false);
     };
 
+    const handleGetPrize = () => {
+        setShowPrizePopup(true);
+    };
+
     return (
         <main className="flex min-h-screen flex-col bg-black text-white p-4 md:p-8">
             <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center">
@@ -134,6 +139,40 @@ export default function LeaderPageComponent() {
                 onClose={() => setShowJoinGroupPopup(false)}
                 onJoinGroup={handleJoinGroup}
             />
+
+            {/* Get Prize Popup */}
+            {showPrizePopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 p-8 rounded-lg max-w-md w-full border-4 border-yellow-500">
+                        <h2 className="text-2xl font-bold mb-4 text-yellow-400">🏆 Claim Your Prize</h2>
+                        <p className="mb-4">
+                            Congratulations! You are eligible to claim your prize.
+                        </p>
+                        <p className="mb-6">
+                            Your prize will be sent to your connected wallet address:
+                            <span className="block mt-2 bg-gray-700 p-2 rounded font-mono text-sm overflow-hidden text-ellipsis">
+                                {address}
+                            </span>
+                        </p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700"
+                                onClick={() => setShowPrizePopup(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-bold rounded hover:from-yellow-500 hover:to-yellow-300"
+                                onClick={() => {
+                                    setShowPrizePopup(false);
+                                }}
+                            >
+                                Claim Prize
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {showPopup && teamId && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -209,9 +248,9 @@ export default function LeaderPageComponent() {
                     </div>
 
                     <div className="mt-8 text-center space-y-4">
-                        <div className="flex justify-center space-x-4 mb-16 mt-16">
+                        <div className="flex justify-center gap-14 mb-8 mt-16">
                             <button
-                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors mr-40"
+                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"
                                 onClick={() => {
                                     if (confirm('Are you sure you want to leave this group?')) {
                                         // Add leave group logic here
@@ -220,6 +259,13 @@ export default function LeaderPageComponent() {
                                 }}
                             >
                                 Leave Group
+                            </button>
+                            {/* Get Prize Button */}
+                            <button 
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-black font-bold px-4 py-2 rounded-md shadow-lg transform transition-all duration-300 hover:scale-105 border-2 border-yellow-600"
+                                onClick={handleGetPrize}
+                            >
+                                Get Prize
                             </button>
                             <button
                                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors"

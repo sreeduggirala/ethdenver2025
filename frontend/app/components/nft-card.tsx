@@ -21,7 +21,6 @@ export default function NFTCard({
     return (
       <div className="aspect-square rounded-lg border-2 border-dashed border-gray-700 flex flex-col items-center justify-center hover:border-purple-500 hover:bg-gray-900 transition-all duration-200">
         <span className="text-gray-500">Empty Slot</span>
-        <span className="text-sm text-gray-400 mt-2">Click to add KOL</span>
       </div>
     )
   }

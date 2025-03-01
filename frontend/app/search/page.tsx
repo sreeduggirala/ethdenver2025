@@ -28,13 +28,22 @@ export default function SearchPage() {
     console.log("Raw KOLs data:", rawKolsData);
     
     if (rawKolsData && rawKolsData.kols && Array.isArray(rawKolsData.kols)) {
+      // Store the complete KOL objects without any transformation
       setAllKols(rawKolsData.kols);
       console.log("All KOLs loaded:", rawKolsData.kols.length);
       
-      // Log the first and last KOL to verify data
+      // Log the first and last KOL to verify all properties are present
       if (rawKolsData.kols.length > 0) {
-        console.log("First KOL:", rawKolsData.kols[0]);
-        console.log("Last KOL:", rawKolsData.kols[rawKolsData.kols.length - 1]);
+        const firstKol = rawKolsData.kols[0];
+        const lastKol = rawKolsData.kols[rawKolsData.kols.length - 1];
+        
+        console.log("First KOL with all properties:", firstKol);
+        console.log("First KOL properties:", Object.keys(firstKol));
+        console.log("First KOL points value:", firstKol.points);
+        
+        console.log("Last KOL with all properties:", lastKol);
+        console.log("Last KOL properties:", Object.keys(lastKol));
+        console.log("Last KOL points value:", lastKol.points);
       }
     } else {
       console.error("Invalid KOLs data structure:", rawKolsData);
@@ -103,8 +112,15 @@ export default function SearchPage() {
           console.log("All KOLs count (from state):", allKols.length);
           
           // Filter out KOLs that are already in the roster
+          // This preserves ALL properties of each KOL object
           const filteredKols = allKols.filter(kol => !rosterIds.includes(kol.id));
           console.log("Filtered KOLs count:", filteredKols.length);
+          
+          // Verify that points are preserved in the filtered KOLs
+          if (filteredKols.length > 0) {
+            console.log("Sample filtered KOL with all properties:", filteredKols[0]);
+            console.log("Sample filtered KOL points:", filteredKols[0].points);
+          }
           
           setAvailableKols(filteredKols)
         } catch (error) {
@@ -137,7 +153,7 @@ export default function SearchPage() {
       refundAmount = currentRoster[indexNum].price
     }
     
-    // Update roster
+    // Update roster with the complete KOL object (including points)
     currentRoster[indexNum] = kol
     window.localStorage.setItem("roster", JSON.stringify(currentRoster))
     
@@ -188,7 +204,7 @@ export default function SearchPage() {
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     {balance >= kol.price ? (
-                      <span className="text-white font-semibold text-lg">Buy</span>
+                      <span className="text-white font-semibold text-lg">Buy Now</span>
                     ) : (
                       <span className="text-red-400 font-semibold text-lg">Insufficient Funds</span>
                     )}

@@ -197,12 +197,6 @@ export default function TeamPageComponent() {
             </div>
           </div>
 
-          {hasDraftedKols && (
-            <div className="bg-yellow-800 text-white p-4 rounded-md mb-8 text-center">
-              <p className="text-lg">Your team has been pre-drafted. You cannot modify these selections.</p>
-            </div>
-          )}
-
           {/* Player Selection Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-16 mt-24">
             {roster.map((kol, index) =>
@@ -259,6 +253,12 @@ export default function TeamPageComponent() {
               )
             )}
           </div>
+          
+          {hasDraftedKols && (
+            <div className="bg-yellow-800 text-white p-4 rounded-md mb-8 text-center">
+              <p className="text-lg">Your team has been finalized. Good luck now degen!.</p>
+            </div>
+          )}
 
           {/* Fund Team Button - Only show if not drafted */}
           {!hasDraftedKols && (
