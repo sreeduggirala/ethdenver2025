@@ -17,6 +17,10 @@ export default function TeamPageComponent() {
   const [showFundPopup, setShowFundPopup] = useState(false);
   const [draftedKols, setDraftedKols] = useState<string[]>([]);
   const [hasDraftedKols, setHasDraftedKols] = useState(false);
+<<<<<<< Updated upstream
+=======
+  const [teamId, setTeamId] = useState<number | null>(-1);
+>>>>>>> Stashed changes
 
   const { ready, authenticated, user } = usePrivy();
   const { wallets } = useWallets();
@@ -28,7 +32,14 @@ export default function TeamPageComponent() {
     async function fetchDraftedKols() {
       if (address) {
         try {
+<<<<<<< Updated upstream
           const draft = await getDraft(address, wallet?.chainId);
+=======
+          const teamId = await getTeamId(address, wallet?.chainId);
+          setTeamId(teamId); 
+          
+          const draft = await getDraft(address);
+>>>>>>> Stashed changes
           setDraftedKols(draft);
           
           // Check if there are any non-empty drafted KOLs
@@ -149,7 +160,24 @@ export default function TeamPageComponent() {
         </div>
       ) : (
         <>
+<<<<<<< Updated upstream
           {/* Fund Team Popup */}
+=======
+        {/* Join/Create Team Button - Only show if teamId is 0 */}  
+        {console.log("teamId", teamId)}
+        {teamId === null && (
+            <div className="flex justify-center mt-8 mb-16">
+              <Link href="/noteam">
+                <button 
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white font-bold text-xl py-3 px-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105"
+                >
+                  Join or Create a Team
+                </button>
+              </Link>
+            </div>
+          )} : (
+            <div className="flex justify-center mt-8 mb-16">{/* Fund Team Popup */}
+>>>>>>> Stashed changes
           {showFundPopup && !hasDraftedKols && (
             <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
               <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
@@ -278,7 +306,14 @@ export default function TeamPageComponent() {
                 Fund Team
               </button>
             </div>
+<<<<<<< Updated upstream
           )}
+=======
+          )}</div>
+          )
+          
+          
+>>>>>>> Stashed changes
         </>
       )}
     </main>
