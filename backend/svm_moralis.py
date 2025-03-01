@@ -2,9 +2,13 @@ import aiohttp
 import asyncio
 from dotenv import load_dotenv
 import os
+import supabase
 
 load_dotenv()
 api_key = os.getenv("MORALIS_API_KEY")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+Client = supabase.create_client(supabase_url, supabase_key)
 
 
 async def get_svm_portfolio(address: str):
