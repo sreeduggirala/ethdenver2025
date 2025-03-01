@@ -16,6 +16,7 @@ contract Fantasy {
 		address[5] members;
 		uint256[5] funds;
 		uint256[5] prizes;
+		uint256[5] points;
 	}
 
 	mapping(address => string[5]) public drafts;
@@ -81,6 +82,7 @@ contract Fantasy {
 		team.members[index] = address(0);
 		team.funds[index] = 0;
 		team.prizes[index] = 0;
+		team.points[index] = 0;
 		emit PlayerLeft(msg.sender, id);
 	}
 
@@ -151,7 +153,7 @@ contract Fantasy {
 		emit PriceUpdated(kol, price);
 	}
 
-	function setPrize(uint256 id, address player, uint256 amount) public onlyAuthority {
+	function addPrize(uint256 id, address player, uint256 amount) public onlyAuthority {
 		Team storage team = teams[id];
 		uint256 index = 5;
 		for(uint256 i = 0; i < 5; i++) {
@@ -161,7 +163,21 @@ contract Fantasy {
 			}
 		}
 		require(index < 5, "Could not find player");
-		team.prizes[index] = amount;
+		team.prizes[index] += amount;
+		emit PrizeIssued(id, player, amount);
+	}
+
+	function addPoints(uint256 id, address player, uint256 amount) public onlyAuthority {
+		Team storage team = teams[id];
+		uint256 index = 5;
+		for(uint256 i = 0; i < 5; i++) {
+			if(team.members[i] == player) {
+				index = i;
+				break;
+			}
+		}
+		require(index < 5, "Could not find player");
+		team.points[index] += amount;
 		emit PrizeIssued(id, player, amount);
 	}
 
@@ -171,6 +187,10 @@ contract Fantasy {
 
 	function getMembersFromTeam(uint256 id) public view returns (address[5] memory) {
 		return teams[id].members;
+	}
+
+	function getPointsFromTeam(uint256 id) public view returns (uint256[5] memory) {
+		return teams[id].points;
 	}
 
 	function getDraft(address player) public view returns (string[5] memory) {
