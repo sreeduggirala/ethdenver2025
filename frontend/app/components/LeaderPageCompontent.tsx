@@ -18,7 +18,7 @@ export default function LeaderPageComponent() {
         points: number;
         rank: number;
     }>>([]);
-    const [teamId, setTeamId] = useState<number | null>(null);
+    const [teamId, setTeamId] = useState<number | null>(-1);
     const [isLoading, setIsLoading] = useState(true);
     const [showPopup, setShowPopup] = useState(false);
     const { ready, authenticated, user } = usePrivy();
@@ -47,7 +47,9 @@ export default function LeaderPageComponent() {
                 try {
                     const id = await getTeamId(address);
                     setTeamId(id);
-                    setIsLoading(false);
+                    if(id == 0) {
+                        setIsLoading(false);
+                    }
                 } catch (error) {
                     console.error("Error fetching team ID:", error);
                 }
@@ -58,7 +60,7 @@ export default function LeaderPageComponent() {
 
     useEffect(() => {
         async function fetchAndSortPlayers() {
-            if (teamId && teamId !== 0) {
+            if (teamId > 0) {
                 try {
                     const members = await getMembersFromTeam(teamId);
                     const points = await getPointsFromTeam(teamId);
@@ -79,8 +81,9 @@ export default function LeaderPageComponent() {
                             ...player,
                             rank: index + 1
                         }));
-
+                    // alert(JSON.stringify(sortedPlayers));
                     setPlayers(sortedPlayers);
+                    setIsLoading(false);
                 } catch (error) {
                     console.error("Error fetching player data:", error);
                 }
@@ -131,7 +134,7 @@ export default function LeaderPageComponent() {
                 <>
                     <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center">
                         <TrophyIcon className="inline-block mr-2 h-16 w-16 text-yellow-400" />
-                        {teamId === 0 ? 'Welcome!' : 'Leaderboard'}
+                        {teamId == 0 ? 'Welcome!' : 'Leaderboard'}
                     </h1>
 
                     {/* Create Group Popup */}
@@ -182,7 +185,7 @@ export default function LeaderPageComponent() {
                         </div>
                     )}
 
-                    {showPopup && teamId && (
+                    {showPopup && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                             <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
                                 <h2 className="text-2xl font-bold mb-4">Invite Players</h2>
@@ -212,7 +215,7 @@ export default function LeaderPageComponent() {
                         </div>
                     )}
 
-                    {teamId === 0 ? (
+                    {teamId == 0 ? (
                         <div className="flex flex-col items-center gap-6 mt-8">
                             <p className="text-xl text-gray-300">You're not part of any team yet!</p>
                             <div className="flex gap-4">

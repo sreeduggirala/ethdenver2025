@@ -8,5 +8,10 @@ export async function getMembersFromTeam(id: string, chainId: string): Promise<s
     const provider = new ethers.providers.JsonRpcProvider(getRPC(chainId));
     const contractAddress = getContractAddress(chainId);
     const contract = new ethers.Contract(contractAddress, abi, provider);
-    return await contract.getMembersFromTeam(id);
+    return (await contract.getMembersFromTeam(id)).map((member) => {
+        if(member == "0x0000000000000000000000000000000000000000") {
+            return "";
+        }
+        return member;
+    });
 }
