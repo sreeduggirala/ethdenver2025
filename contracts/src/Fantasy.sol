@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FantasyKOL is ERC20, Ownable {
+contract Fantasy is ERC20, Ownable {
     address public token;
     uint256 counter = 1;
 
@@ -33,8 +33,6 @@ contract FantasyKOL is ERC20, Ownable {
     event PointsIssued(uint256 id, address player, uint256 amount);
     event PrizeClaimed(uint256 id, address player, uint256 amount);
 
-    // 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec - mainnet RLUSD
-    // 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4 - sepolia RLUSD
     constructor(
         address owner,
         address initialToken
