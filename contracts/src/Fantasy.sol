@@ -25,6 +25,7 @@ contract Fantasy {
 
 	event TeamCreated(uint256 id, address creator);
 	event PlayerJoined(address player, uint256 id);
+	event PlayerLeft(address player, uint256 id);
 	event Drafted(address player, string kol, uint256 index);
 	event PriceUpdated(string kol, uint256 price);
 	event PrizeIssued(uint256 id, address player, uint256 amount);
@@ -65,6 +66,22 @@ contract Fantasy {
 			}
 		}
 		require(joined, "Team is already full");
+	}
+
+	function leave(uint256 id) public {
+		Team storage team = teams[id];
+		uint256 index = 5;
+		for(uint256 i = 0; i < 5; i++) {
+			if(team.members[i] == msg.sender) {
+				index = i;
+				break;
+			}
+		}
+		require(index < 5, "Could not find player in that team");
+		team.members[index] = address(0);
+		team.funds[index] = 0;
+		team.prizes[index] = 0;
+		emit PlayerLeft(msg.sender, id);
 	}
 
 	function draft(address player, string memory kol, uint256 index) public {
