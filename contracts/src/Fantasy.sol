@@ -198,7 +198,7 @@ contract Fantasy {
 		emit PointsIssued(id, player, amount);
 	}
 
-	function addAllPrizesAndPoints(uint256 id, uint256[] prizes, uint256[] points) public onlyAuthority {
+	function addAllPrizesAndPoints(uint256 id, uint256[] memory prizes, uint256[] memory points) public onlyAuthority {
 		require(prizes.length == 5, "Number of prizes must be 5");
 		require(points.length == 5, "Number of points must be 5");
 		Team storage team = teams[id];
