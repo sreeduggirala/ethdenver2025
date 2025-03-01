@@ -1,5 +1,12 @@
+'use client';
 import Link from "next/link"
 import { CircleIcon } from "lucide-react"
+
+import React from 'react';
+import Providers from './components/Providers'; 
+import LoginButton from './components/LoginButton';
+
+
 
 export default function Home() {
   return (
@@ -32,16 +39,9 @@ export default function Home() {
 
         <p className="text-lg md:text-xl mb-16 font-light">Pick your starting 5. Compete. Win.</p>
 
-        <Link
-          href="/team"
-          className="bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-16 rounded-md text-2xl md:text-3xl transition-all duration-300 transform hover:scale-105 relative"
-          style={{
-            boxShadow: "0 0 15px rgba(139, 92, 246, 0.5)",
-            textShadow: "0 0 5px rgba(255, 255, 255, 0.5)",
-          }}
-        >
-          PLAY
-        </Link>
+        <Providers>
+          <LoginButton onSuccess={() => window.location.href = '/team'} />
+        </Providers>
       </div>
     </main>
   )

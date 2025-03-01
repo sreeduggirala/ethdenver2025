@@ -52,8 +52,8 @@ export default function LeaderboardPage() {
       </div>
 
       <div className="mt-8 text-center">
-        <Link href="/" className="text-purple-400 hover:text-purple-300 underline">
-          Back to Home
+        <Link href="/team" className="text-purple-400 hover:text-purple-300 underline">
+          Back to Team
         </Link>
       </div>
     </main>
