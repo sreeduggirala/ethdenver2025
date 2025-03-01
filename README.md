@@ -21,7 +21,7 @@ RLUSD: [0xa8e8b268C1fff143B30Eb727b79187ac551A8a4b](https://hashscan.io/testnet/
 
 ## Unichain Sepolia: https://unichain-sepolia.drpc.org
 
-FantasyKOL: [0x813722E1244b608a8d60fD5090C68bF6Ac12b602](https://unichain-sepolia.blockscout.com/address/0x813722E1244b608a8d60fD5090C68bF6Ac12b602)
+FantasyKOL: [0xE0e4f202Ddee2850Ed29E3B7b59Bd205ac107E80](https://unichain-sepolia.blockscout.com/address/0xE0e4f202Ddee2850Ed29E3B7b59Bd205ac107E80)
 RLUSD: [0x26c2A3eB005f99db89d1Ae160a53d5e96a82d937](https://unichain-sepolia.blockscout.com/token/0x26c2A3eB005f99db89d1Ae160a53d5e96a82d937)
 
 ## Base Sepolia: https://base-sepolia.drpc.org
