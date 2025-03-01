@@ -94,7 +94,7 @@ async function calculatePoints() {
       } else {
         const PnL = current.netWorth - previous.netWorth;
         const normalizedPnL = PnL / previous.netWorth;
-        const points = normalizedPnL * 100;
+        const points = Math.round(normalizedPnL * 1000);
         results.push({ kolAddress: currentKolAddress, points });
       }
     } else {
