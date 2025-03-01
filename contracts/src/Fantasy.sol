@@ -15,7 +15,6 @@ contract Fantasy {
 
 	struct Team {
 		address[5] members;
-		uint256[5] funds;
 		uint256[5] prizes;
 		uint256[5] points;
 		uint256 pool;
@@ -75,6 +74,11 @@ contract Fantasy {
 				}
 				joined = true;
 				membership[msg.sender] = id;
+				require(IERC20(token).transferFrom(msg.sender, address(this), team.deposit * (10 ** 18)), "Funds transfer failed");
+				uint256 fee = team.deposit / 5;
+				require(IERC20(token).transfer(feeCollector, fee * (10 ** 18)), "Fee transfer failed");
+				team.pool += team.deposit - fee;
+				balances[msg.sender] = 100;
 				emit PlayerJoined(msg.sender, id);
 				break;
 			}
@@ -93,7 +97,6 @@ contract Fantasy {
 		}
 		require(index < 5, "Could not find player in that team");
 		team.members[index] = address(0);
-		team.funds[index] = 0;
 		team.prizes[index] = 0;
 		team.points[index] = 0;
 		membership[msg.sender] = 0;
@@ -125,24 +128,6 @@ contract Fantasy {
 			drafts[player][i] = kols[i];
 			emit Drafted(player, kols[i], i);
 		}
-	}
-
-	function addFunds(uint256 id) public {
-		Team storage team = teams[id];
-		uint256 index = 5;
-		for(uint256 i = 0; i < 5; i++) {
-			if(team.members[i] == msg.sender && team.funds[i] == 0) {
-				index = i;
-				break;
-			}
-		}
-		require(index < 5, "Could not find player with no balance");
-		require(IERC20(token).transferFrom(msg.sender, address(this), team.deposit * (10 ** 18)), "Funds transfer failed");
-		team.funds[index] = team.deposit;
-		uint256 fee = team.deposit / 5;
-		require(IERC20(token).transfer(feeCollector, fee * (10 ** 18)), "Fee transfer failed");
-		team.pool += team.deposit - fee;
-		balances[msg.sender] = 100;
 	}
 
 	function claimPrize(uint256 id) public {
