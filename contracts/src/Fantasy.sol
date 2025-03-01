@@ -50,6 +50,21 @@ contract Fantasy is ERC20, Ownable {
             drafts[msg.sender][i] = "";
         }
         membership[msg.sender] = counter;
+        require(
+            ERC20(token).transferFrom(
+                msg.sender,
+                address(this),
+                deposit * (10 ** 18)
+            ),
+            "Funds transfer failed"
+        );
+        uint256 fee = deposit / 5;
+        require(
+            ERC20(token).transfer(owner(), fee * (10 ** 18)),
+            "Fee transfer failed"
+        );
+        team.pool += team.deposit - fee;
+        balances[msg.sender] = 100;
         emit TeamCreated(counter, msg.sender);
         counter++;
         return counter - 1;

@@ -16,7 +16,6 @@ export default function JoinGroupPopup({ isOpen, onClose, onJoinGroup }: JoinGro
   const handleJoinGroup = () => {
     // TODO: Add logic to join a group
     onJoinGroup(teamId);
-    setTeamId(1); // Reset the form
   };
 
   return (

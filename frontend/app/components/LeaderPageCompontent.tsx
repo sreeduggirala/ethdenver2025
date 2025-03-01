@@ -11,9 +11,11 @@ import { getPointsFromTeam } from "../lib/getPointsFromTeam";
 import { getTeamId } from "../lib/getTeamId";
 import { getPrize } from "../lib/getPrize";
 import { getTokenAddress } from "../lib/getTokenAddress";
+import { getDeposit } from "../lib/getDeposit";
 import { getContractAddress } from "../lib/getContractAddress";
 import CreateGroupPopup from "./CreateGroupPopup";
 import JoinGroupPopup from "./JoinGroupPopup";
+const abi = require("../../../contracts/out/Fantasy.sol/Fantasy.json").abi;
 
 
 export default function LeaderPageComponent() {
@@ -141,6 +143,7 @@ export default function LeaderPageComponent() {
     const handleCreateGroup = async (depositAmount: number) => {
         // Implement group creation logic here using depositAmount
         console.log(`Creating new group with ${depositAmount} RLUSD deposit requirement`);
+        let provider = await wallet.getEthereumProvider();
         let erc20Abi = [
             {
                 "inputs": [
@@ -158,25 +161,104 @@ export default function LeaderPageComponent() {
             functionName: 'approve',
             args: [address, BigInt(depositAmount) * (10n ** 18n)]
         });
-        const transactionRequest = {
+        let transactionRequest = {
+            from: address,
+            to: getTokenAddress(wallet?.chainId),
+            data: data,
+            value: 0
+        }
+        let hash = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [transactionRequest],
+        });
+
+        data = encodeFunctionData({
+            abi: abi,
+            functionName: 'createTeam',
+            args: [BigInt(depositAmount)]
+        });
+        transactionRequest = {
             from: address,
             to: getContractAddress(wallet?.chainId),
             data: data,
             value: 0
         }
-        let provider = await wallet.getEthereumProvider();
-        const hash = await provider.request({
+        hash = await provider.request({
             method: 'eth_sendTransaction',
             params: [transactionRequest],
         });
         setShowCreateGroupPopup(false);
     };
 
-    const handleJoinGroup = (teamId: number) => {
+    const handleJoinGroup = async (_teamId: number) => {
         // Implement group joining logic here using teamId
-        console.log(`Joining group with ID: ${teamId}`);
+        console.log(`Joining group with ID: ${_teamId}`);
+        let provider = await wallet.getEthereumProvider();
+        let erc20Abi = [
+            {
+                "inputs": [
+                    { "name": "spender", "type": "address" },
+                    { "name": "amount", "type": "uint256" }
+                ],
+                "name": "approve",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+        let data = encodeFunctionData({
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [address, BigInt(await getDeposit(_teamId)) * (10n ** 18n)]
+        });
+        let transactionRequest = {
+            from: address,
+            to: getTokenAddress(wallet?.chainId),
+            data: data,
+            value: 0
+        }
+        let hash = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [transactionRequest],
+        });
+
+        data = encodeFunctionData({
+            abi: abi,
+            functionName: 'join',
+            args: [_teamId]
+        });
+        transactionRequest = {
+            from: address,
+            to: getContractAddress(wallet?.chainId),
+            data: data,
+            value: 0
+        }
+        hash = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [transactionRequest],
+        });
         setShowJoinGroupPopup(false);
     };
+
+    const handleLeaveGroup = async () => {
+        // Implement group creation logic here using depositAmount
+        let provider = await wallet.getEthereumProvider();
+        let data = encodeFunctionData({
+            abi: abi,
+            functionName: 'leave',
+            args: [teamId]
+        });
+        let transactionRequest = {
+            from: address,
+            to: getContractAddress(wallet?.chainId),
+            data: data,
+            value: 0
+        }
+        let hash = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [transactionRequest],
+        });
+    }
 
     const handleGetPrize = () => {
         setShowPrizePopup(true);
@@ -320,12 +402,7 @@ export default function LeaderPageComponent() {
                                 <div className="flex justify-center gap-14 mb-8 mt-16">
                                     <button
                                         className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"
-                                        onClick={() => {
-                                            if (confirm('Are you sure you want to leave this group?')) {
-                                                // Add leave group logic here
-                                                console.log('Leaving group...');
-                                            }
-                                        }}
+                                        onClick={handleLeaveGroup}
                                     >
                                         Leave Group
                                     </button>

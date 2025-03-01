@@ -16,7 +16,6 @@ export default function CreateGroupPopup({ isOpen, onClose, onCreateGroup }: Cre
   const handleCreateGroup = () => {
     // TODO: Add logic to create a new group
     onCreateGroup(depositAmount);
-    setDepositAmount(1); // Reset the form
   };
 
   return (
