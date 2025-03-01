@@ -28,7 +28,7 @@ export default function TeamPageComponent() {
     async function fetchDraftedKols() {
       if (address) {
         try {
-          const draft = await getDraft(address);
+          const draft = await getDraft(address, wallet?.chainId);
           setDraftedKols(draft);
           
           // Check if there are any non-empty drafted KOLs
@@ -69,7 +69,7 @@ export default function TeamPageComponent() {
     }
     
     fetchDraftedKols();
-  }, [address]);
+  }, [address, wallet?.chainId]);
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -155,12 +155,12 @@ export default function TeamPageComponent() {
               <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
                 <h2 className="text-2xl font-bold mb-4 text-yellow-400">Fund Your Team</h2>
                 <p className="text-gray-300 mb-6">
-                  Warning: This action will lock your team and funds. You won't be able to:
+                  Warning: This action will lock your KOL team and funds. You won't be able to:
                 </p>
                 <ul className="list-disc pl-6 mb-6 text-gray-300 space-y-2">
-                  <li>Change your team composition</li>
-                  <li>Remove or swap KOLs</li>
-                  <li>Withdraw your funds until the competition ends</li>
+                  <li>Change your KOL team composition</li>
+                  <li>Add, remove, or swap KOLs</li>
+                  <li>Withdraw your deposited funds</li>
                 </ul>
                 <p className="text-gray-300 mb-6">
                   Are you sure you want to proceed?
