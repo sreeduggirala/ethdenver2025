@@ -5,6 +5,10 @@
 
 # Contracts
 
+## Ethereum: https://rpc-sepolia.rockx.com
+
+[]()
+
 ## Zircuit: https://zircuit1-testnet.p2pify.com
 
 []()
