@@ -8,6 +8,7 @@ import { getBalance } from "../lib/getBalance";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { getDraft } from "../lib/getDraft";
 import kolsData from "../../data/kols.json";
+import { getTeamId } from "../lib/getTeamId";
 
 export default function TeamPageComponent() {
   const [roster, setRoster] = useState<any[]>([{}, {}, {}, {}, {}]);
@@ -17,6 +18,7 @@ export default function TeamPageComponent() {
   const [showFundPopup, setShowFundPopup] = useState(false);
   const [draftedKols, setDraftedKols] = useState<string[]>([]);
   const [hasDraftedKols, setHasDraftedKols] = useState(false);
+  const [teamId, setTeamId] = useState<number | null>(null);
 
   const { ready, authenticated, user } = usePrivy();
   const { wallets } = useWallets();
@@ -114,6 +116,20 @@ export default function TeamPageComponent() {
     fetchBalance();
   }, [address, roster, wallet?.chainId]);
 
+  useEffect(() => {
+    async function fetchTeamId() {
+      if (address) {
+        try {
+          const id = await getTeamId(address);
+          setTeamId(id);
+        } catch (error) {
+          console.error("Error fetching team ID:", error);
+        }
+      }
+    }
+    fetchTeamId();
+  }, [address]);
+
   const handleEmptySlotClick = (slotIndex: number) => {
     localStorage.setItem("selectedSlotIndex", slotIndex.toString());
   };
@@ -149,6 +165,20 @@ export default function TeamPageComponent() {
         </div>
       ) : (
         <>
+        {/* Join/Create Team Button - Only show if teamId is 0 */}  
+        {console.log("teamId", teamId)}
+        {teamId === null && (
+            <div className="flex justify-center mt-8 mb-16">
+              <Link href="/noteam">
+                <button 
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white font-bold text-xl py-3 px-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105"
+                >
+                  Join or Create a Team
+                </button>
+              </Link>
+            </div>
+          )}
+
           {/* Fund Team Popup */}
           {showFundPopup && !hasDraftedKols && (
             <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -279,6 +309,7 @@ export default function TeamPageComponent() {
               </button>
             </div>
           )}
+          
         </>
       )}
     </main>
