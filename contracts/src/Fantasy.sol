@@ -9,7 +9,7 @@ interface IERC20 {
 contract Fantasy {
 	address public authority;
 	address public token = 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec;
-	uint256 counter = 0;
+	uint256 counter = 1;
 	// address public token = 0x866386C7f4F2A5f46C5F4566D011dbe3e8679BE4;
 
 	struct Team {
@@ -23,6 +23,7 @@ contract Fantasy {
 	mapping(uint256 => Team) public teams;
 	mapping(string => uint256) public prices;
 	mapping(address => uint256) public balances;
+	mapping(address => uint256) public membership;
 
 	event TeamCreated(uint256 id, address creator);
 	event PlayerJoined(address player, uint256 id);
@@ -43,17 +44,20 @@ contract Fantasy {
 	}
 
 	function createTeam() public returns (uint256) {
+		require(membership[msg.sender] == 0, "Already in a team");
 		Team storage team = teams[counter];
 		team.members[0] = msg.sender;
 		for(uint256 i = 0; i < 5; i++) {
 			drafts[msg.sender][i] = "";
 		}
+		membership[msg.sender] = counter;
 		emit TeamCreated(counter, msg.sender);
 		counter++;
 		return counter - 1;
 	}
 
 	function join(uint256 id) public {
+		require(membership[msg.sender] == 0, "Already in a team");
 		Team storage team = teams[id];
 		bool joined = false;
 		for(uint256 i = 0; i < 5; i++) {
@@ -63,6 +67,7 @@ contract Fantasy {
 					drafts[msg.sender][j] = "";
 				}
 				joined = true;
+				membership[msg.sender] = id;
 				emit PlayerJoined(msg.sender, id);
 				break;
 			}
@@ -84,6 +89,7 @@ contract Fantasy {
 		team.funds[index] = 0;
 		team.prizes[index] = 0;
 		team.points[index] = 0;
+		membership[msg.sender] = 0;
 		emit PlayerLeft(msg.sender, id);
 	}
 
@@ -234,7 +240,11 @@ contract Fantasy {
 	}
 
 	function getBalance(address player) public view returns (uint256) {
-		return balances[address];
+		return balances[player];
+	}
+
+	function getTeam(address player) public view returns (uint256) {
+		return membership[player];
 	}
 
 	function getToken() public view returns (address) {
