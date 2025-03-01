@@ -169,6 +169,10 @@ contract Fantasy {
 		return prize;
 	}
 
+	function getBalance(address player) public view returns (uint256) {
+		return balances[address];
+	}
+
 	function getToken() public view returns (address) {
 		return token;
 	}
