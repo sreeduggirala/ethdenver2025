@@ -153,7 +153,7 @@ export default function TeamPageComponent() {
           {showFundPopup && !hasDraftedKols && (
             <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
               <div className="bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
-                <h2 className="text-2xl font-bold mb-4 text-yellow-400">Fund Your Team</h2>
+                <h2 className="text-2xl font-bold mb-4 text-yellow-400">Confirm Your Team</h2>
                 <p className="text-gray-300 mb-6">
                   Warning: This action will lock your KOL team and funds. You won't be able to:
                 </p>
@@ -275,7 +275,7 @@ export default function TeamPageComponent() {
                 className="bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-300 text-black font-bold text-xl py-3 px-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105"
                 onClick={() => setShowFundPopup(true)}
               >
-                Fund Team
+                Confirm Team
               </button>
             </div>
           )}
