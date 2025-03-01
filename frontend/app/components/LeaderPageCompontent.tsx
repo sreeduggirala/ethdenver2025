@@ -3,11 +3,12 @@
 import Link from "next/link"
 import { TrophyIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-react"
 import { useEffect, useState } from 'react'
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { routeModule } from "next/dist/build/templates/app-page"
 import { getMembersFromTeam } from "../lib/getMembersFromTeam";
 import { getPointsFromTeam } from "../lib/getPointsFromTeam";
 import { getTeamId } from "../lib/getTeamId";
+import { getPrize } from "../lib/getPrize";
 import CreateGroupPopup from "./CreateGroupPopup";
 import JoinGroupPopup from "./JoinGroupPopup";
 
@@ -21,7 +22,10 @@ export default function LeaderPageComponent() {
     const [teamId, setTeamId] = useState<number | null>(-1);
     const [isLoading, setIsLoading] = useState(true);
     const [showPopup, setShowPopup] = useState(false);
+    const [showGetPrize, setShowGetPrize] = useState(false);
     const { ready, authenticated, user } = usePrivy();
+    const { wallets } = useWallets();
+    const [wallet, setWallet] = useState();
     let address: any = user?.wallet?.address || window.localStorage.getItem("address");
     const [isCopied, setIsCopied] = useState(false);
     const [showCreateGroupPopup, setShowCreateGroupPopup] = useState(false);
@@ -45,7 +49,7 @@ export default function LeaderPageComponent() {
         async function fetchTeamId() {
             if (address) {
                 try {
-                    const id = await getTeamId(address);
+                    const id = await getTeamId(address, wallet?.chainId);
                     setTeamId(id);
                     if(id == 0) {
                         setIsLoading(false);
@@ -56,14 +60,14 @@ export default function LeaderPageComponent() {
             }
         }
         fetchTeamId();
-    }, [address]);
+    }, [address, wallet?.chainId]);
 
     useEffect(() => {
         async function fetchAndSortPlayers() {
             if (teamId > 0) {
                 try {
-                    const members = await getMembersFromTeam(teamId);
-                    const points = await getPointsFromTeam(teamId);
+                    const members = await getMembersFromTeam(teamId, wallet?.chainId);
+                    const points = await getPointsFromTeam(teamId, wallet?.chainId);
 
                     // Combine members and points, filter out empty addresses
                     const combinedData = members
@@ -91,7 +95,24 @@ export default function LeaderPageComponent() {
         }
 
         fetchAndSortPlayers();
-    }, [teamId]);
+    }, [teamId, wallet?.chainId]);
+
+    useEffect(() => {
+        async function fetchPrize() {
+            if (teamId > 0) {
+                try {
+                    const prizes = await getPrize(teamId, address, wallet?.chainId);
+                    if(prizes > 0) {
+                        setShowGetPrize(true);
+                    }
+                } catch (error) {
+                    console.error("Error fetching player data:", error);
+                }
+            }
+        }
+
+        fetchPrize();
+    }, [teamId, address, wallet?.chainId]);
 
     useEffect(() => {
         if(ready && !authenticated) {
@@ -103,6 +124,12 @@ export default function LeaderPageComponent() {
         localStorage.setItem("address", address);
         }
     }, [user, ready, authenticated]);
+
+    useEffect(() => {
+      if(wallets[0] != undefined) {
+        setWallet(wallets[0]);
+      }
+    }, [wallets]);
 
     const handleEmptySlotClick = (slotIndex: number) => {
         localStorage.setItem('selectedSlotIndex', slotIndex.toString())
@@ -272,12 +299,14 @@ export default function LeaderPageComponent() {
                                         Leave Group
                                     </button>
                                     {/* Get Prize Button */}
-                                    <button 
-                                        className="bg-gradient-to-r from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-black font-bold px-4 py-2 rounded-md shadow-lg transform transition-all duration-300 hover:scale-105 border-2 border-yellow-600"
-                                        onClick={handleGetPrize}
-                                    >
-                                        Get Prize
-                                    </button>
+                                    {showGetPrize && (
+                                        <button 
+                                            className="bg-gradient-to-r from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-black font-bold px-4 py-2 rounded-md shadow-lg transform transition-all duration-300 hover:scale-105 border-2 border-yellow-600"
+                                            onClick={handleGetPrize}
+                                        >
+                                            Get Prize
+                                        </button>
+                                    )}
                                     <button
                                         className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors"
                                         onClick={() => setShowPopup(true)}
