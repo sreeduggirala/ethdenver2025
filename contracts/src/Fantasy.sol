@@ -30,6 +30,7 @@ contract Fantasy {
 	event Drafted(address player, string kol, uint256 index);
 	event PriceUpdated(string kol, uint256 price);
 	event PrizeIssued(uint256 id, address player, uint256 amount);
+	event PointsIssued(uint256 id, address player, uint256 amount);
 	event PrizeClaimed(uint256 id, address player, uint256 amount);
 
 	constructor() {
@@ -178,7 +179,18 @@ contract Fantasy {
 		}
 		require(index < 5, "Could not find player");
 		team.points[index] += amount;
-		emit PrizeIssued(id, player, amount);
+		emit PointsIssued(id, player, amount);
+	}
+
+	function addAllPrizesAndPoints(uint256 id, uint256[] prizes, uint256[] points) public onlyAuthority {
+		require(prizes.length == 5, "Number of prizes must be 5");
+		require(points.length == 5, "Number of points must be 5");
+		for(uint256 i = 0; i < 5; i++) {
+			team.prizes[i] += prizes[i];
+			emit PrizeIssued(id, team.members[i], prizes[i]);
+			team.points[i] += points[i];
+			emit PointsIssued(id, team.members[i], points[i]);
+		}
 	}
 
 	function setToken(address updatedAddress) public onlyAuthority {
