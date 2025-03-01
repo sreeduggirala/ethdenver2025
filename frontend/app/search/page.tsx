@@ -182,7 +182,6 @@ export default function SearchPage() {
 
           {/* Debug Info */}
           <div className="mb-4 text-gray-400">
-            <p>Total KOLs in JSON: {allKols.length}</p>
             <p>Available KOLs: {availableKols.length}</p>
           </div>
 
