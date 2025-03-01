@@ -1,9 +1,12 @@
-export async function getBalance(player: string): Promise<number> {
-    // const roster = localStorage.getItem("roster");
-    // if (roster == null) {
-    //     return 0;
-    // }
-    // console.log(roster);
-    // roster.reduce((acc, kol) => acc + (kol.price || 0), 0);
-    return 100;
+const { ethers } = require("ethers");
+const { getRPC } = require("./getRPC");
+const { getContractAddress } = require("./getContractAddress");
+
+const abi = require("../../../contracts/out/Fantasy.sol/Fantasy.json").abi;
+
+export async function getBalance(player: string, chainId: string): Promise<number> {
+    const provider = new ethers.providers.JsonRpcProvider(getRPC(chainId));
+    const contractAddress = getContractAddress(chainId);
+    const contract = new ethers.Contract(contractAddress, abi, provider);
+    return await contract.getBalance(player);
 }

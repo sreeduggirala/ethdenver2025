@@ -1,9 +1,12 @@
-export async function getPointsFromTeam(id: number): Promise<number[]> {
-    return [
-        10,
-        50,
-        30,
-        0,
-        0
-    ];
-} 
+const { ethers } = require("ethers");
+const { getRPC } = require("./getRPC");
+const { getContractAddress } = require("./getContractAddress");
+
+const abi = require("../../../contracts/out/Fantasy.sol/Fantasy.json").abi;
+
+export async function getPointsFromTeam(id: string, chainId: string): Promise<number[]> {
+    const provider = new ethers.providers.JsonRpcProvider(getRPC(chainId));
+    const contractAddress = getContractAddress(chainId);
+    const contract = new ethers.Contract(contractAddress, abi, provider);
+    return await contract.getPointsFromTeam(id);
+}

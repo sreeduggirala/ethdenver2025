@@ -5,7 +5,7 @@ import { TrophyIcon } from "@heroicons/react/24/solid";
 import NFTCard from "@/app/components/nft-card";
 import { useEffect, useState } from "react";
 import { getBalance } from "../lib/getBalance";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { getDraft } from "../lib/getDraft";
 import kolsData from "../../data/kols.json";
 
@@ -19,6 +19,8 @@ export default function TeamPageComponent() {
   const [hasDraftedKols, setHasDraftedKols] = useState(false);
 
   const { ready, authenticated, user } = usePrivy();
+  const { wallets } = useWallets();
+  const [wallet, setWallet] = useState();
   let address: any = user?.wallet?.address || window.localStorage.getItem("address");
 
   // Fetch drafted KOLs
@@ -81,11 +83,17 @@ export default function TeamPageComponent() {
   }, [user, ready, authenticated]);
 
   useEffect(() => {
+    if(wallets[0] != undefined) {
+      setWallet(wallets[0]);
+    }
+  }, [wallets]);
+
+  useEffect(() => {
     async function fetchBalance() {
       if (address) {
         setIsLoading(true);
         try {
-          const bal = await getBalance(address);
+          const bal = await getBalance(address, wallet?.chainId);
           setInitialBalance(bal);
           
           // Calculate total cost of current roster
@@ -104,7 +112,7 @@ export default function TeamPageComponent() {
     }
     
     fetchBalance();
-  }, [address, roster]);
+  }, [address, roster, wallet?.chainId]);
 
   const handleEmptySlotClick = (slotIndex: number) => {
     localStorage.setItem("selectedSlotIndex", slotIndex.toString());

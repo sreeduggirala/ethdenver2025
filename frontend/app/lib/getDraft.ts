@@ -1,9 +1,12 @@
-export async function getDraft(player: string): Promise<string[]> {
-    return [
-        "7tiRXPM4wwBMRMYzmywRAE6jveS3gDbNyxgRrEoU6RLA",
-        "F2SuErm4MviWJ2HzKXk2nuzBC6xe883CFWUDCPz6cyWm",
-        "2YJbcB9G8wePrpVBcT31o8JEed6L3abgyCjt5qkJMymV",
-        "215nhcAHjQQGgwpQSJQ7zR26etbjjtVdW74NLzwEgQjP",
-        ""
-    ];
-} 
+const { ethers } = require("ethers");
+const { getRPC } = require("./getRPC");
+const { getContractAddress } = require("./getContractAddress");
+
+const abi = require("../../../contracts/out/Fantasy.sol/Fantasy.json").abi;
+
+export async function getDraft(player: string, chainId: string): Promise<string[]> {
+    const provider = new ethers.providers.JsonRpcProvider(getRPC(chainId));
+    const contractAddress = getContractAddress(chainId);
+    const contract = new ethers.Contract(contractAddress, abi, provider);
+    return await contract.getDraft(player);
+}
