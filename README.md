@@ -10,7 +10,7 @@ Our team comprises undergraduate Computer Science and Electrical and Computer En
 Zircuit was difficult to work with, as I couldn't transfer tokens between accounts. Furthermore, the faucet was difficult to utilize, as tokens often didn't send to my wallet.
 
 # Video
-
+A demo video can be found at [youtu.be/zVqlEwN_J5k](https://youtu.be/zVqlEwN_J5k)
 
 # Contracts
 
