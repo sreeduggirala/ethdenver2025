@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Fantasy is ERC20, Ownable {
-    address public token;
+contract Fantasy is Ownable {
     uint256 counter = 1;
 
     struct Team {
@@ -33,15 +31,14 @@ contract Fantasy is ERC20, Ownable {
     event PointsIssued(uint256 id, address player, uint256 amount);
     event PrizeClaimed(uint256 id, address player, uint256 amount);
 
-    constructor(
-        address owner,
-        address initialToken
-    ) ERC20("", "") Ownable(owner) {
-        token = initialToken;
-    }
+    // Constructor sets the deployer as the owner.
+    constructor(address owner) Ownable(owner) {}
 
-    function createTeam(uint256 deposit) public returns (uint256) {
+    // Create a team by sending an ETH deposit.
+    function createTeam(uint256 deposit) public payable returns (uint256) {
         require(membership[msg.sender] == 0, "Already in a team");
+        require(msg.value == deposit, "Incorrect deposit amount");
+
         Team storage team = teams[counter];
         team.exists = true;
         team.deposit = deposit;
@@ -50,31 +47,27 @@ contract Fantasy is ERC20, Ownable {
             drafts[msg.sender][i] = "";
         }
         membership[msg.sender] = counter;
-        require(
-            ERC20(token).transferFrom(
-                msg.sender,
-                address(this),
-                deposit * (10 ** 18)
-            ),
-            "Funds transfer failed"
-        );
+
+        // Calculate fee (a fifth of the deposit) and forward it to the owner.
         uint256 fee = deposit / 5;
-        require(
-            ERC20(token).transfer(owner(), fee * (10 ** 18)),
-            "Fee transfer failed"
-        );
-        team.pool += team.deposit - fee;
+        payable(owner()).transfer(fee);
+
+        // The remaining deposit becomes the team's pool.
+        team.pool = deposit - fee;
         balances[msg.sender] = 100;
+
         emit TeamCreated(counter, msg.sender);
         counter++;
         return counter - 1;
     }
 
-    function join(uint256 id) public {
+    // Join an existing team by sending the required deposit in ETH.
+    function join(uint256 id) public payable {
         require(membership[msg.sender] == 0, "Already in a team");
         Team storage team = teams[id];
         require(team.exists, "Team does not exist");
         require(!team.locked, "Team is locked");
+
         bool joined = false;
         for (uint256 i = 0; i < 5; i++) {
             if (team.members[i] == address(0)) {
@@ -84,19 +77,10 @@ contract Fantasy is ERC20, Ownable {
                 }
                 joined = true;
                 membership[msg.sender] = id;
-                require(
-                    ERC20(token).transferFrom(
-                        msg.sender,
-                        address(this),
-                        team.deposit * (10 ** 18)
-                    ),
-                    "Funds transfer failed"
-                );
+                require(msg.value == team.deposit, "Incorrect deposit amount");
+
                 uint256 fee = team.deposit / 5;
-                require(
-                    ERC20(token).transfer(owner(), fee * (10 ** 18)),
-                    "Fee transfer failed"
-                );
+                payable(owner()).transfer(fee);
                 team.pool += team.deposit - fee;
                 balances[msg.sender] = 100;
                 emit PlayerJoined(msg.sender, id);
@@ -106,6 +90,7 @@ contract Fantasy is ERC20, Ownable {
         require(joined, "Team is already full");
     }
 
+    // Allow a player to leave a team.
     function leave(uint256 id) public {
         Team storage team = teams[id];
         require(team.exists, "Team does not exist");
@@ -117,6 +102,7 @@ contract Fantasy is ERC20, Ownable {
             }
         }
         require(index < 5, "Could not find player in that team");
+
         team.members[index] = address(0);
         team.prizes[index] = 0;
         team.points[index] = 0;
@@ -124,26 +110,21 @@ contract Fantasy is ERC20, Ownable {
         emit PlayerLeft(msg.sender, id);
     }
 
+    // Draft a single KOL for a player.
     function draft(address player, string memory kol, uint256 index) public {
         require(index < 5, "Index must be less than 5");
-        uint256 price = 10;
-        if (prices[kol] > 0) {
-            price = prices[kol];
-        }
+        uint256 price = prices[kol] > 0 ? prices[kol] : 10;
         require(balances[player] >= price, "Insufficient funds");
         balances[player] -= price;
         drafts[player][index] = kol;
         emit Drafted(player, kol, index);
     }
 
+    // Draft all 5 KOLs for a player.
     function draftAll(address player, string[] memory kols) public {
         require(kols.length == 5, "Number of KOLs must be 5");
-        uint256 price = 10;
         for (uint256 i = 0; i < 5; i++) {
-            price = 10;
-            if (prices[kols[i]] > 0) {
-                price = prices[kols[i]];
-            }
+            uint256 price = prices[kols[i]] > 0 ? prices[kols[i]] : 10;
             require(balances[player] >= price, "Insufficient funds");
             balances[player] -= price;
             drafts[player][i] = kols[i];
@@ -151,6 +132,7 @@ contract Fantasy is ERC20, Ownable {
         }
     }
 
+    // Claim a prize by receiving ETH from the contract.
     function claimPrize(uint256 id) public {
         Team storage team = teams[id];
         require(team.exists, "Team does not exist");
@@ -162,20 +144,20 @@ contract Fantasy is ERC20, Ownable {
             }
         }
         require(index < 5, "Could not find player with prizes");
+
         uint256 prize = team.prizes[index];
         team.prizes[index] = 0;
-        require(
-            ERC20(token).transfer(msg.sender, prize * (10 ** 18)),
-            "Prize transfer failed"
-        );
+        payable(msg.sender).transfer(prize);
         emit PrizeClaimed(id, msg.sender, prize);
     }
 
+    // Set the price for a KOL.
     function setPrice(string memory kol, uint256 price) public onlyOwner {
         prices[kol] = price;
         emit PriceUpdated(kol, price);
     }
 
+    // Add a prize (ETH amount) to a player's account within a team.
     function addPrize(
         uint256 id,
         address player,
@@ -198,6 +180,7 @@ contract Fantasy is ERC20, Ownable {
         emit PrizeIssued(id, player, amount);
     }
 
+    // Add points to a player within a team.
     function addPoints(
         uint256 id,
         address player,
@@ -218,6 +201,7 @@ contract Fantasy is ERC20, Ownable {
         emit PointsIssued(id, player, amount);
     }
 
+    // Batch add prizes and points to each team member.
     function addAllPrizesAndPoints(
         uint256 id,
         uint256[] memory prizes,
@@ -238,10 +222,7 @@ contract Fantasy is ERC20, Ownable {
         }
     }
 
-    function setToken(address updatedAddress) public onlyOwner {
-        token = updatedAddress;
-    }
-
+    // Getter functions.
     function getMembersFromTeam(
         uint256 id
     ) public view returns (address[5] memory) {
@@ -275,11 +256,7 @@ contract Fantasy is ERC20, Ownable {
     }
 
     function getPrice(string memory kol) public view returns (uint256) {
-        uint256 price = 10;
-        if (prices[kol] > 0) {
-            price = prices[kol];
-        }
-        return price;
+        return prices[kol] > 0 ? prices[kol] : 10;
     }
 
     function getPrize(
@@ -308,9 +285,5 @@ contract Fantasy is ERC20, Ownable {
 
     function getTeam(address player) public view returns (uint256) {
         return membership[player];
-    }
-
-    function getToken() public view returns (address) {
-        return token;
     }
 }
