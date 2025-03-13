@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # FantasyKOL
 
 0xCfd748B9De538c9f5b1805e8db9e1d4671f7F2ec - Ethereum Mainnet RLUSD
@@ -11,6 +12,10 @@ Our team comprises undergraduate Computer Science and Electrical and Computer En
 Zircuit was difficult to work with, as I couldn't transfer tokens between accounts. Furthermore, the faucet was difficult to utilize, as tokens often didn't send to my wallet.
 
 # Video
+=======
+# Video
+A demo video can be found at [youtu.be/zVqlEwN_J5k](https://youtu.be/zVqlEwN_J5k)
+>>>>>>> 99b7e308886eff938c2e0b52cb348f74fe8b8662
 
 # Contracts
 
@@ -40,4 +45,14 @@ FantasyKOL: [0xa8e8b268C1fff143B30Eb727b79187ac551A8a4b](https://somnia-devnet.s
 
 ## Flow: https://testnet.evm.nodes.onflow.org
 
+<<<<<<< HEAD
 FantasyKOL: [0x16D769B7de2fB76AaA9bd52b563e639c3015A8ea](https://evm-testnet.flowscan.io/address/0x16D769B7de2fB76AaA9bd52b563e639c3015A8ea)
+=======
+FantasyKOL: [0xE0e4f202Ddee2850Ed29E3B7b59Bd205ac107E80](https://evm-testnet.flowscan.io/address/0xE0e4f202Ddee2850Ed29E3B7b59Bd205ac107E80)
+RLUSD: [0x26c2A3eB005f99db89d1Ae160a53d5e96a82d937](https://evm-testnet.flowscan.io/address/0x26c2A3eB005f99db89d1Ae160a53d5e96a82d937)
+
+# Zircuit Submission
+Fantasy KOL is a fantasy sports game (like ESPN Fantasy Football) for onchain whale/KOL wallets. 
+We used Zircuit for smart contract deployment, which facilitated team creation, drafting, and ERC-20 payouts.
+Our team comprises of undergraduate Computer Science and Electrical and Computer Engineering majors at the University of Texas at Austin. Zircuit was difficult to work with, as we couldn't transfer tokens between accounts on testnet. Furthermore, the faucet was difficult to utilize, as tokens often didn't send to our wallets.
+>>>>>>> 99b7e308886eff938c2e0b52cb348f74fe8b8662
